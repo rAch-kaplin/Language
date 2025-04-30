@@ -1,0 +1,27 @@
+<Assignment> ::= <Var> "=" <Expression>
+
+<If> ::= "block" "(" <Condition> ")" "{" <Operation>+ "}"
+
+<While> ::= "rally" "(" <Condition> ")" "{" <Operation>+ "}"
+
+<Condition> ::= <Expression> <CompOp> <Expression>
+
+<CompOp> ::= "scores_equal"
+           | "scores_diff"
+           | "leading"
+           | "losing"
+           | "not_behind"
+           | "not_losing"
+
+<Operation> ::= <Assignment>
+              | <If>
+              | <While>
+
+<Expression> ::= <Term> (("+" | "-") <Term>)*
+<Term>       ::= <Factor> (("*" | "/") <Factor>)*
+<Factor>     ::= <Power> | <Number> | <Var> | "(" <Expression> ")"
+<Power>      ::= <Factor> "^" <Factor>
+
+<Var> ::= "player_" <ID>
+<ID> ::= [0-9]+
+<Number> ::= [0-9]+
