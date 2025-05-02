@@ -3,4 +3,3 @@ build
 bin
 cmake_install.cmake
 logfile.log
-CMakeLists.txt

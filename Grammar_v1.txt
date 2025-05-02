@@ -19,8 +19,7 @@
 
 <Expression> ::= <Term> (("+" | "-") <Term>)*
 <Term>       ::= <Factor> (("*" | "/") <Factor>)*
-<Factor>     ::= <Power> | <Number> | <Var> | "(" <Expression> ")"
-<Power>      ::= <Factor> "^" <Factor>
+<Factor>     ::= <Number> | <Var> | "(" <Expression> ")"
 
 <Var> ::= "player_" <ID>
 <ID> ::= [0-9]+
