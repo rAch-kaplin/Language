@@ -24,9 +24,14 @@ typedef enum NodeType
 
 typedef enum Operator
 {
+    OP_SEMICOLON,
     OP_ASSIGN,
     OP_IF,
     OP_WHILE,
+    //OP_BREAK,
+    //OP_CONTINUE,
+    OP_SCAN,
+    OP_PRINT,
     // OP_BLOCK,
     // OP_FUNC_CALL,
 } Operator;
@@ -37,7 +42,6 @@ typedef enum Operation
     SUB,
     MUL,
     DIV,
-    POW,
 
     EQ,     // ==
     NEQ,    // !=
@@ -85,17 +89,16 @@ typedef struct
 
 static const Operation_t operations[] =
 {
-    {ADD,  "+"},
-    {SUB,  "-"},
-    {MUL,  "*"},
-    {DIV,  "/"},
-    {POW,  "^"},
-    {EQ,  "=="},
-    {NEQ, "!="},
-    {LT,   "<"},
-    {LE,  "<="},
-    {GT,   ">"},
-    {GE,  ">="}
+    {ADD,            "+"},
+    {SUB,            "-"},
+    {MUL,            "*"},
+    {DIV,            "/"},
+    {EQ,  "scores_equal"},
+    {NEQ, "	scores_diff"},
+    {LT,        "losing"},
+    {LE,    "not_losing"},
+    {GT,       "leading"},
+    {GE,    "not_behind"},
 };
 
 const size_t size_of_operations = sizeof(operations) / sizeof(operations[0]);
@@ -110,9 +113,14 @@ typedef struct
 
 static const Operator_t operators[] =
 {
-    {OP_ASSIGN, "="},
-    {OP_IF,     "if"},
-    {OP_WHILE,  "while"}
+    {OP_SEMICOLON,         ";"},
+    {OP_ASSIGN,            "="},
+    {OP_IF,            "block"},
+    {OP_WHILE,         "rally"},
+    //{OP_BREAK,       "timeout"},
+    //{OP_CONTINUE,     "rotate"},
+    {OP_PRINT,         "serve"},
+    {OP_SCAN,        "receive"},
 };
 
 const size_t size_of_operators = sizeof(operators) / sizeof(operators[0]);
@@ -124,8 +132,8 @@ Node* NewNode(NodeType type, NodeValue value, Node* left, Node* right);
 //CodeError CreateNode(Node **dest, const char *data, Node *parent);
 NodeType DetectNodeType(const char *str);
 
-// CodeError TreeDumpDot (Node* root);
-// CodeError TreeDumpDot2(Node* root);
+CodeError TreeDumpDot (Node* root);
+CodeError TreeDumpDot2(Node* root);
 
 void FreeTree(Node** node);
 

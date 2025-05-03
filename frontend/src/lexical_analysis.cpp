@@ -112,15 +112,27 @@ Lexeme* StringToLexemes(const char *str, size_t *lexeme_count)
             cur++;
             continue;
         }
+        else if (*cur == '{')
+        {
+            AddLexeme(lexeme_array, lexeme_count, LEX_LBRACE, '{');
+            cur++;
+            continue;
+        }
+        else if (*cur == '}')
+        {
+            AddLexeme(lexeme_array, lexeme_count, LEX_RBRACE, '}');
+            cur++;
+            continue;
+        }
         else if (*cur == ';')
         {
             AddLexeme(lexeme_array, lexeme_count, LEX_SEMICOLON, ';');
             cur++;
             continue;
         }
-        else if (*cur == EOF) //FIXME
+        else if (*cur == '\0')
         {
-            AddLexeme(lexeme_array, lexeme_count, LEX_END, EOF);
+            AddLexeme(lexeme_array, lexeme_count, LEX_END, 0);
             cur++;
             continue;
         }
@@ -282,12 +294,20 @@ void PrintLexemes(const Lexeme* lexeme_array, size_t lexeme_count)
                 printf(YELLOW "RBRACKET   " RESET ": '" YELLOW ")'" RESET "\n");
                 break;
 
+            case LEX_LBRACE:
+                printf(YELLOW "LEX_LBRACE   " RESET ": '" YELLOW "{'" RESET "\n");
+                break;
+
+            case LEX_RBRACE:
+                printf(YELLOW "LEX_RBRACE   " RESET ": '" YELLOW "}'" RESET "\n");
+                break;
+
             case LEX_SEMICOLON:
                 printf(RED "SEMICOLON  " RESET ": '" YELLOW ";'" RESET "\n");
                 break;
 
             case LEX_END:
-                printf(RED "END        " RESET "\n");
+                printf(RED "END        " RESET ": '" RED "0'" RESET "\n");
                 break;
 
             default:
@@ -311,9 +331,11 @@ Lexeme* InitLexemeArray(const char* file_expr, size_t *lexeme_count)
         return nullptr;
     }
 
+    LOG(LOGL_DEBUG, "Start StringToLexemes()");
     Lexeme *lexeme_array = StringToLexemes(expr_buffer, lexeme_count);
     free(expr_buffer);
 
+    LOG(LOGL_DEBUG, "Init Lexeme Array SUCCESS");
     return lexeme_array;
 }
 

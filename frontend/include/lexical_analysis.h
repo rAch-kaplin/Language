@@ -11,6 +11,8 @@ typedef enum LexemeType
     LEX_OPERATION,
     LEX_LBRACKET,
     LEX_RBRACKET,
+    LEX_RBRACE,
+    LEX_LBRACE,
     LEX_SEMICOLON,
     LEX_END,
 } LexemeType;
@@ -33,7 +35,7 @@ Lexeme*     InitLexemeArray(const char* file_expr, size_t *lexeme_count);
 void        PrintLexemes(const Lexeme *lexeme_array, size_t lexeme_count);
 void        DeinitLexemes(Lexeme* lexeme_array);
 
-size_t LookupVar(Variable *vars_table, const char* name, size_t len_name);
+size_t LookupVar  (Variable *vars_table, const char* name, size_t len_name);
 size_t AddVartable(Variable *vars_table, const char* name, size_t len_name);
 Variable* GetVarsTable();
 void FreeVarsTable();

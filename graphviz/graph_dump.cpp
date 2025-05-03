@@ -16,7 +16,8 @@ const size_t command_buf = 512;
 
 const char* GetNodeLabel(const Node* node);
 const char* GetNodeColor(const Node* node);
-int GenerateGraph(Node* node, char* buffer, int* buffer_len);
+
+int GenerateGraph (Node* node, char* buffer, int* buffer_len);
 int GenerateGraph2(Node* node, char* buffer, int* buffer_len);
 
 const char* GetNodeLabel(const Node* node)
@@ -44,12 +45,12 @@ const char* GetNodeLabel(const Node* node)
             }
             break;
         }
-        case OP:
+        case OPERATION:
         {
             const char* op_symbol = NULL;
-            for (size_t i = 0; i < sizeof(operations)/sizeof(operations[0]); i++)
+            for (size_t i = 0; i < size_of_operations; i++)
             {
-                if (operations[i].op == node->value.op)
+                if (operations[i].op == node->value.oper)
                 {
                     op_symbol = operations[i].symbol;
                     break;
@@ -58,20 +59,20 @@ const char* GetNodeLabel(const Node* node)
             snprintf(label, sizeof(label), "%s", op_symbol ? op_symbol : "?");
             break;
         }
-        case FUNC:
+        case OPERATOR:
         {
-            const char* func_name = nullptr;
+            const char* operator_name = nullptr;
 
-            for (size_t i = 0; i < sizeof(func) / sizeof(func[0]); i++)
+            for (size_t i = 0; i < size_of_operators; i++)
             {
-                if (func[i].func == node->value.func)
+                if (operators[i].optr == node->value.optr)
                 {
-                    func_name = func[i].name;
+                    operator_name = operators[i].keyword;
                     break;
                 }
             }
 
-            snprintf(label, sizeof(label), "%s", func_name ? func_name : "Unknow");
+            snprintf(label, sizeof(label), "%s", operator_name ? operator_name : "Unknow");
             break;
         }
         default:
@@ -90,11 +91,11 @@ const char* GetNodeColor(const Node* node)
 
     switch (node->type)
     {
-        case NUM:    return "#ff9a8d";
-        case VAR:    return "#7e8aab";
-        case OP:     return "#aed6dc";
-        case FUNC:   return "#809fb0";
-        default:     return "#ffffff";
+        case NUM:           return "#ffca3a";
+        case VAR:           return "#ff595e";
+        case OPERATION:     return "#8ac926";
+        case OPERATOR:      return "#6a4c93";
+        default:            return "#ffffff";
     }
 }
 
@@ -113,13 +114,14 @@ CodeError TreeDumpDot(Node* root)
     buffer_len += snprintf(buffer + buffer_len, BUFFER_SIZE - (size_t)buffer_len,
                            "digraph G {\n"
                            "\trankdir = HR;\n"
-                           "\tbgcolor=\"#ebf7fa\";\n");
+                           "\tbgcolor=\"#e6f0c0\";\n");
 
     GenerateGraph(root, buffer, &buffer_len);
 
     buffer_len += snprintf(buffer + buffer_len, BUFFER_SIZE - (size_t)buffer_len, "}\n");
 
-    FILE* file = fopen("graphiz/dot/dump.dot", "w+");
+    system("mkdir -p ../graphviz/img graphviz/dot");
+    FILE* file = fopen("../graphviz/dot/dump.dot", "w+");
     if (!file)
     {
         fprintf(stderr, "Cannot open dot file\n");
@@ -127,17 +129,17 @@ CodeError TreeDumpDot(Node* root)
         return FILE_NOT_OPEN;
     }
 
+
     fprintf(file, "%s", buffer);
     fclose(file);
     free(buffer);
 
-    system("mkdir -p graphiz/img graphiz/dot");
 
     char png_name[PNG_NAME_SIZE] = {};
-    snprintf(png_name, sizeof(png_name), "graphiz/img/dump_%d.png", dump_counter++);
+    snprintf(png_name, sizeof(png_name), "../graphviz/img/dump_%d.png", dump_counter++);
 
     char command[command_buf] = {};
-    snprintf(command, sizeof(command), "dot -Tpng graphiz/dot/dump.dot -o %s", png_name);
+    snprintf(command, sizeof(command), "dot -Tpng ../graphviz/dot/dump.dot -o %s", png_name);
     system(command);
 
     return OK;
@@ -162,7 +164,7 @@ int GenerateGraph(Node* node, char* buffer, int* buffer_len)
         "\t\t\t\t                     <td WIDTH='150' PORT='right' align='center'><FONT COLOR='#3a3a3a'><b>Right: %p</b></FONT></td>\n"
         "\t\t\t                   </tr>\n"
         "\t\t                     </table> >];\n",
-        node, color, node, node->parent, (node->type == OP ? "OP" : (node->type == NUM ? "NUM" : "VAR")), label, node->left, node->right);
+        node, color, node, node->parent, (node->type == OPERATOR ? "OPERATOR" : (node->type == OPERATION ? "OPERATION" : (node->type == NUM ? "NUM" : "VAR"))), label, node->left, node->right);
 
     if (node->left)
     {
@@ -229,7 +231,7 @@ CodeError TreeDumpDot2(Node* root)
     buffer_len += snprintf(buffer + buffer_len, BUFFER_SIZE - (size_t)buffer_len, "}\n");
 
 
-    FILE* file = fopen("graphiz/dot/dump2.dot", "w+");
+    FILE* file = fopen("graphviz/dot/dump2.dot", "w+");
     if (!file)
     {
         fprintf(stderr, "Cannot open dot file\n");
@@ -241,13 +243,13 @@ CodeError TreeDumpDot2(Node* root)
     fclose(file);
     free(buffer);
 
-    system("mkdir -p graphiz/img graphiz/dot");
+    system("mkdir -p graphviz/img graphviz/dot");
 
     char png_name[PNG_NAME_SIZE] = {};
-    snprintf(png_name, sizeof(png_name), "graphiz/img/dump2_%d.png", dump_counter++);
+    snprintf(png_name, sizeof(png_name), "graphviz/img/dump2_%d.png", dump_counter++);
 
     char command[command_buf] = {};
-    snprintf(command, sizeof(command), "dot -Tpng graphiz/dot/dump2.dot -o %s", png_name);
+    snprintf(command, sizeof(command), "dot -Tpng graphviz/dot/dump2.dot -o %s", png_name);
     system(command);
 
     return OK;

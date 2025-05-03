@@ -10,6 +10,7 @@ target_sources(logger_lib PRIVATE
 
 target_include_directories(logger_lib PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+    $<INSTALL_INTERFACE:include>
 )
 
 set_target_properties(logger_lib PROPERTIES

@@ -20,7 +20,7 @@ int main(int argc, const char* argv[]) //TODO not const
 
     clock_t start = clock();
 
-    const char* log_file = "logfile.log";
+    const char* log_file = "../logfile.log";
     LoggerInit(LOGL_DEBUG, log_file, DEFAULT_MODE);
 
     ArgOption options[] = { {"-i",  "--input", true, nullptr, false},
@@ -39,13 +39,21 @@ int main(int argc, const char* argv[]) //TODO not const
         return 1;
     }
 
+    LOG(LOGL_DEBUG, "Start ReadProgram");
+    Node *prog = ReadProgram(file_expr);
+    if (!prog)
+    {
+        printf(RED "Program reading ERROR\n" RESET);
 
-    ReadProgram(file_expr);
-    // if (node_G == nullptr)
-    // {
-    //     fprintf(stderr, "ERROR! check log file\n");
-    // }
+        FreeTree(&prog);
+        FreeVarsTable();
+        LoggerDeinit();
 
+        return 1;
+    }
+    TreeDumpDot(prog);
+
+    FreeTree(&prog);
     FreeVarsTable();
     LoggerDeinit();
 

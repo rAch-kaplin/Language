@@ -1,1 +1,4 @@
-if (x == 5) x = x + 1;
+block (x scores_equal 5)
+{
+    x = x + 1 ;
+}

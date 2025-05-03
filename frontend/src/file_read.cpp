@@ -23,13 +23,14 @@ Node* ReadProgram(const char *file_program)
     }
     PrintLexemes(lexeme_array, lexeme_count);
 
-    //size_t cur = 0;
-    //Node *node_G = GetG(lexeme_array, &cur);
+    size_t cur = 0;
+    LOG(LOGL_DEBUG, "Start General() func");
+    Node *node_G = General(lexeme_array, &cur);
 
     DeinitLexemes(lexeme_array);
 
-    //return node_G;
-    return nullptr;
+    return node_G;
+    //return nullptr;
 }
 
 
@@ -58,7 +59,7 @@ char* ReadProgramToBuffer(const char *program_name, size_t *file_size)
     }
 
     *file_size = GetSizeFile(file_program);
-    char *buffer = (char*)calloc(*file_size + 1, sizeof(char));
+    char *buffer = (char*)calloc(*file_size + 2, sizeof(char));
     if (buffer == nullptr)
     {
         LOG(LOGL_ERROR, "Memory allocation failed");
