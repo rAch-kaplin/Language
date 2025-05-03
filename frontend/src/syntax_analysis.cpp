@@ -21,7 +21,7 @@ static Node* GetFactor          (Lexeme* lexemes, size_t* pos);
 
 static void SyntaxERROR(const char* message, size_t pos, LexemeType expected, LexemeType found);
 
-//#define _SEMICOLON(node)   NewNode(OPERATOR, OPERATOR_VALUE(OP_SEMICOLON), node, nullptr)
+#define _SEMICOLON(node)   NewNode(OPERATOR, OPERATOR_VALUE(OP_SEMICOLON), node, nullptr)
 
 static void SyntaxERROR(const char* message, size_t pos, LexemeType expected, LexemeType found)
 {
@@ -40,13 +40,7 @@ Node* General(Lexeme* lexemes, size_t* pos)
     {
         Node* new_node = GetStatement(lexemes, pos);
 
-        if (!new_node)
-        {
-            (*pos)++;
-            continue;
-        }
-
-        if (!program_root)
+        if (program_root == nullptr)
         {
             program_root = new_node;
             current_node = new_node;
@@ -140,13 +134,9 @@ Node* GetStatement(Lexeme* lexemes, size_t* pos)
         (*pos)++;
     }
 
-    // if (node)
-    // {
-    //     return _SEMICOLON(node);
-    // }
 
     LOG(LOGL_DEBUG, "NODE RETURN FROM GETSTATEMENT : node = %p", node);
-    return node;
+    return _SEMICOLON(node);
 }
 
 Node* GetIf(Lexeme* lexemes, size_t* pos)

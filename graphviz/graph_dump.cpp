@@ -94,7 +94,11 @@ const char* GetNodeColor(const Node* node)
         case NUM:           return "#ffca3a";
         case VAR:           return "#ff595e";
         case OPERATION:     return "#8ac926";
-        case OPERATOR:      return "#6a4c93";
+
+        case OPERATOR:
+            if (node->value.optr == OP_SEMICOLON)
+                return "#1982c4";
+            return "#6a4c93";
         default:            return "#ffffff";
     }
 }

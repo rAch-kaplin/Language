@@ -1,4 +1,4 @@
-block (x scores_equal 5)
+block (y scores_equal 5)
 {
-    x = x + 1 ;
+    x = x + 1;
 }
