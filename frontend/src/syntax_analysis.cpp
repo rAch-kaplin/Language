@@ -277,7 +277,7 @@ Node* GetPrint(Lexeme* lexemes, size_t* pos)
 Node* GetScan(Lexeme* lexemes, size_t* pos)
 {
     assert(lexemes);
-    assert(pos);
+    assert(pos);    
 
     (*pos)++;
 

@@ -1,11 +1,14 @@
 project(logger LANGUAGES CXX)
 
+file(GLOB_RECURSE LOGGER_SOURCES "*.cpp")
+
 add_library(logger_lib STATIC
-    ${CMAKE_CURRENT_SOURCE_DIR}/logger.cpp
+    LOGGER_SOURCES
+    logger.h
 )
 
 target_sources(logger_lib PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}/logger.h
+    logger.h
 )
 
 target_include_directories(logger_lib PUBLIC
