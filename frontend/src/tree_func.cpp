@@ -27,66 +27,6 @@ Node* NewNode(NodeType type, NodeValue value, Node* left, Node* right)
     return node;
 }
 
-#if 0
-CodeError CreateNode(Node **dest, const char *data, Node *parent)
-{
-    if (dest == nullptr || data == nullptr)
-        return INVALID_ARGUMENT;
-
-    Node* node = (Node*)calloc(1, sizeof(Node));
-    if (!node)
-        return MEM_ALLOC_FAIL;
-
-    NodeType type = DetectNodeType(data);
-    NodeValue value = {};
-
-    switch (type)
-    {
-        case OP:
-        {
-            bool found = false;
-            for (size_t i = 0; i < sizeof(operations) / sizeof(operations[0]); i++)
-            {
-                if (strcmp(data, operations[i].symbol) == 0)
-                {
-                    value.op = operations[i].op;
-                    found = true;
-                    break;
-                }
-            }
-            if (!found) return INVALID_OPERATION;
-            break;
-        }
-
-        case VAR:
-        {
-            value.var = AddVartable(GetVarsTable(), data, strlen(data));
-            break; //FIXME errors overflow
-        }
-
-        case NUM:
-            value.num = atof(data);
-            break;
-
-        case FUNC:
-            break; //TODO
-
-        default:
-            return INVALID_NODE_TYPE;
-    }
-
-    node->type = type;
-    node->value = value;
-    node->left = nullptr;
-    node->right = nullptr;
-    node->parent = parent;
-
-    *dest = node;
-
-    return OK;
-}
-#endif
-
 NodeType DetectNodeType(const char* str) //FIXME
 {
     if (!str || strlen(str) == 0)

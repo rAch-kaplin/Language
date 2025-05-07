@@ -10,7 +10,7 @@
 /*********************************************************************************************************************************/
 
 const size_t lexeme_array_size = 1000;
-const size_t MAX_VARS = 10;
+const size_t MAX_VARS = 100;
 
 static void SkipSpaces(const char **buffer);
 static void AddLexeme(Lexeme *lexeme_array, size_t *lexeme_count, LexemeType type, double value);

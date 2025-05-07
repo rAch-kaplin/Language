@@ -21,8 +21,6 @@ static Node* GetFactor          (Lexeme* lexemes, size_t* pos);
 
 static void SyntaxERROR(const char* message, size_t pos, LexemeType expected, LexemeType found);
 
-#define _SEMICOLON(node)   NewNode(OPERATOR, OPERATOR_VALUE(OP_SEMICOLON), node, nullptr)
-
 static void SyntaxERROR(const char* message, size_t pos, LexemeType expected, LexemeType found)
 {
     fprintf(stderr, "Syntax error at position %zu: %s (expected %d, found %d)\n",
@@ -59,14 +57,26 @@ Node* ParseBlock(Lexeme* lexemes, size_t* pos)
 {
     assert(lexemes && pos);
 
-    Node *node = GetStatement(lexemes, pos);
-    if (!node)
+    Node* block_root = nullptr;
+    Node* current_node = nullptr;
+
+    while (lexemes[*pos].type != LEX_RBRACE && lexemes[*pos].type != LEX_END)
     {
-        LOG(LOGL_ERROR, "SetStatement() return nullptr");
-        return nullptr;
+        Node* new_node = GetStatement(lexemes, pos);
+
+        if (block_root == nullptr)
+        {
+            block_root = new_node;
+            current_node = new_node;
+        }
+        else
+        {
+            current_node->right = new_node;
+            current_node = new_node;
+        }
     }
 
-    return node;
+    return block_root;
 }
 
 Node* GetStatement(Lexeme* lexemes, size_t* pos)
@@ -81,18 +91,14 @@ Node* GetStatement(Lexeme* lexemes, size_t* pos)
         switch (lexemes[*pos].value.optr)
         {
             case OP_IF:
-                LOG(LOGL_DEBUG, "Start GetStatement ---> OP_IF (block)");
                 node = GetIf(lexemes, pos);
-                LOG(LOGL_DEBUG, "End GetStatement ---> OP_IF : node = %p", node);
                 break;
 
             case OP_WHILE:
-                LOG(LOGL_DEBUG, "GetStatement ---> OP_WHILE (rally)");
                 node = GetWhile(lexemes, pos);
                 break;
 
             case OP_PRINT:
-                LOG(LOGL_DEBUG, "GetStatement ---> OP_PRINT");
                 node = GetPrint(lexemes, pos);
                 if (lexemes[*pos].type != LEX_SEMICOLON)
                 {
@@ -103,29 +109,26 @@ Node* GetStatement(Lexeme* lexemes, size_t* pos)
                 break;
 
             case OP_SCAN:
-                LOG(LOGL_DEBUG, "GetStatement ---> OP_SCAN");
                 node = GetScan(lexemes, pos);
                 if (lexemes[*pos].type != LEX_SEMICOLON)
                 {
-                    SyntaxERROR("Expected ';' after scan", *pos, LEX_SEMICOLON, lexemes[*pos].type); //FIXME
+                    SyntaxERROR("Expected ';' after scan", *pos, LEX_SEMICOLON, lexemes[*pos].type);
                     return nullptr;
                 }
                 (*pos)++;
                 break;
 
             case OP_ASSIGN:
+            case OP_SEMICOLON:
             default:
                 break;
         }
     }
-
     else if (lexemes[*pos].type == LEX_VAR &&
              lexemes[*pos+1].type == LEX_OPERATOR &&
              lexemes[*pos+1].value.optr == OP_ASSIGN)
     {
-        LOG(LOGL_DEBUG, "GetStatement ---> OP_ASSIGNMENT");
         node = GetAssignment(lexemes, pos);
-        LOG(LOGL_DEBUG, "End GetStatement ---> OP_ASSIGNMENT : node = %p", node);
         if (lexemes[*pos].type != LEX_SEMICOLON)
         {
             SyntaxERROR("Expected ';' after assignment", *pos, LEX_SEMICOLON, lexemes[*pos].type);
@@ -134,9 +137,13 @@ Node* GetStatement(Lexeme* lexemes, size_t* pos)
         (*pos)++;
     }
 
+    if (node != nullptr)
+    {
+        Node* semicolon_node = NewNode(OPERATOR, OPERATOR_VALUE(OP_SEMICOLON), node, nullptr);
+        return semicolon_node;
+    }
 
-    LOG(LOGL_DEBUG, "NODE RETURN FROM GETSTATEMENT : node = %p", node);
-    return _SEMICOLON(node);
+    return nullptr;
 }
 
 Node* GetIf(Lexeme* lexemes, size_t* pos)
@@ -153,13 +160,11 @@ Node* GetIf(Lexeme* lexemes, size_t* pos)
     }
     (*pos)++;
 
-    LOG(LOGL_DEBUG, "Start GetCondition");
     Node* cond = GetCondition(lexemes, pos);
     if (!cond)
     {
         return nullptr;
     }
-    LOG(LOGL_DEBUG, "End GetCondition");
 
     if (lexemes[*pos].type != LEX_RBRACKET)
     {
@@ -175,13 +180,11 @@ Node* GetIf(Lexeme* lexemes, size_t* pos)
     }
     (*pos)++;
 
-    LOG(LOGL_DEBUG, "Start Body General");
     Node* body = ParseBlock(lexemes, pos);
     if (!body)
     {
         return nullptr;
     }
-    LOG(LOGL_DEBUG, "End Body General");
 
     if (lexemes[*pos].type != LEX_RBRACE)
     {
@@ -227,7 +230,7 @@ Node* GetWhile(Lexeme* lexemes, size_t* pos)
     }
     (*pos)++;
 
-    Node* body = General(lexemes, pos);
+    Node* body = ParseBlock(lexemes, pos);
     if (!body)
     {
         return nullptr;
@@ -277,7 +280,7 @@ Node* GetPrint(Lexeme* lexemes, size_t* pos)
 Node* GetScan(Lexeme* lexemes, size_t* pos)
 {
     assert(lexemes);
-    assert(pos);    
+    assert(pos);
 
     (*pos)++;
 
@@ -311,7 +314,6 @@ Node* GetAssignment(Lexeme* lexemes, size_t* pos)
     assert(lexemes);
     assert(pos);
 
-    LOG(LOGL_DEBUG, "Get var init");
     Node* var = _VAR(lexemes[*pos].value.var);
     (*pos)++;
 
@@ -322,16 +324,12 @@ Node* GetAssignment(Lexeme* lexemes, size_t* pos)
     }
     (*pos)++;
 
-    LOG(LOGL_DEBUG, "Start GetExpression");
     Node* expr = GetExpression(lexemes, pos);
     if (!expr)
     {
         SyntaxERROR("Expected expression in assignment", *pos, LEX_NUM, lexemes[*pos].type);
         return nullptr;
     }
-    LOG(LOGL_DEBUG, "End GetExpression");
-
-    LOG(LOGL_DEBUG, "Init var success");
 
     return _ASSIGN(var, expr);
 }
@@ -391,7 +389,6 @@ Node* GetExpression(Lexeme* lexemes, size_t* pos)
     Node* node = GetTerm(lexemes, pos);
     if (!node)
     {
-        LOG(LOGL_ERROR, "GerTerm() return nullptr");
         return nullptr;
     }
 
@@ -403,14 +400,12 @@ Node* GetExpression(Lexeme* lexemes, size_t* pos)
         Node* right = GetTerm(lexemes, pos);
         if (!right)
         {
-            LOG(LOGL_ERROR, "GerTerm() return nullptr");
             return nullptr;
         }
 
         node = (op == ADD) ? _ADD(node, right) : _SUB(node, right);
     }
 
-    LOG(LOGL_DEBUG, "node from GetExpression = %p", node);
     return node;
 }
 
@@ -422,7 +417,6 @@ Node* GetTerm(Lexeme* lexemes, size_t* pos)
     Node* node = GetFactor(lexemes, pos);
     if (!node)
     {
-        LOG(LOGL_ERROR, "GerFactor() return nullptr");
         return nullptr;
     }
 
@@ -434,7 +428,6 @@ Node* GetTerm(Lexeme* lexemes, size_t* pos)
         Node* right = GetFactor(lexemes, pos);
         if (!right)
         {
-            LOG(LOGL_ERROR, "GerFactor() return nullptr");
             return nullptr;
         }
 
@@ -449,22 +442,19 @@ Node* GetFactor(Lexeme* lexemes, size_t* pos)
     assert(lexemes);
     assert(pos);
 
-    //printf(" at position %zu: %s (found %d)\n", *pos, lexemes[*pos].type);
+    Node* expr = nullptr;
 
     switch (lexemes[*pos].type)
     {
         case LEX_NUM:
-        {
             return _NUM(lexemes[(*pos)++].value.num);
-        }
+
         case LEX_VAR:
-        {
             return _VAR(lexemes[(*pos)++].value.var);
-        }
+
         case LEX_LBRACKET:
-        {
             (*pos)++;
-            Node* expr = GetExpression(lexemes, pos);
+            expr = GetExpression(lexemes, pos);
             if (!expr)
             {
                 return nullptr;
@@ -476,7 +466,6 @@ Node* GetFactor(Lexeme* lexemes, size_t* pos)
             }
             (*pos)++;
             return expr;
-        }
         case LEX_SEMICOLON:
             break;
         //FIXME
@@ -488,7 +477,7 @@ Node* GetFactor(Lexeme* lexemes, size_t* pos)
         case LEX_OPERATOR:
         default:
             SyntaxERROR("Expected number, variable or '('", *pos, LEX_NUM, lexemes[*pos].type);
-            return nullptr;
+            return expr;
     }
 
     return nullptr;

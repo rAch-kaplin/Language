@@ -7,10 +7,9 @@
 #include "file_read.h"
 #include "tree_func.h"
 #include "logger.h"
-#include "lexical_analysis.h"
-#include "syntax_analysis.h"
 #include "arg_parser.h"
 #include "../common/colors.h"
+#include "backend.h"
 
 const size_t MAX_VARS = 10;
 
@@ -32,40 +31,31 @@ int main(int argc, const char* argv[]) //TODO not const
         return 1;
     }
 
-    const char* program = options[INPUT].argument;
-    if (program == nullptr)
-    {
-        fprintf(stderr, RED "Can't open program, please input -i *.txt\n" RESET);
-        return 1;
-    }
-
-    const char* file_tree = options[OUTPUT].argument;
+    const char* file_tree = options[INPUT].argument;
     if (file_tree == nullptr)
     {
         fprintf(stderr, RED "Can't open file_tree, please input -i *.txt\n" RESET);
         return 1;
     }
 
-    LOG(LOGL_DEBUG, "Start ReadProgram");
-    Node *prog = ReadProgram(program);
-    if (!prog)
+    const char* file_asm = options[OUTPUT].argument;
+    if (file_asm == nullptr)
     {
-        printf(RED "Program reading ERROR\n" RESET);
-
-        FreeTree(&prog);
-        FreeVarsTable();
-        LoggerDeinit();
-
+        fprintf(stderr, RED "Can't open file_asm, please input -i *.txt\n" RESET);
         return 1;
     }
-    TreeDumpDot(prog);
-    TreeDumpDot2(prog);
 
-    SaveTreeToFile(file_tree, prog);
+    Node* root = LoadTreeFromFile(file_tree);
+    if (root == nullptr)
+    {
+        fprintf(stderr, RED "Error: Failed to load tree from file %s\n" RESET, file_tree);
+        return 1;
+    }
 
-    FreeTree(&prog);
-    FreeVarsTable();
-    LoggerDeinit();
+    AssemblyTree(root, file_asm);
+
+    FreeTree(&root);
+
 
     clock_t end = clock();
     double time_spent = (double)(end - start) / CLOCKS_PER_SEC;

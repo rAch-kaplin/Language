@@ -1,0 +1,9 @@
+serve(1);
+width = 0;
+receive(w);
+
+block (y scores_equal 5)
+{
+    x = x + 1;
+    y = 5;
+}

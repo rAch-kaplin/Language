@@ -1,4 +1,0 @@
-block (y scores_equal 5)
-{
-    x = x + 1;
-}

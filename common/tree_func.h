@@ -1,16 +1,7 @@
 #ifndef _HTREE_FUNC
 #define _HTREE_FUNC
 
-enum CodeError
-{
-    OK                  = 0x00,
-    INVALID_ARGUMENT    = 0x01,
-    INVALID_FORMAT      = 0x02,
-    MEM_ALLOC_FAIL      = 0x03,
-    FILE_NOT_OPEN       = 0x04,
-    INVALID_OPERATION   = 0x05,
-    INVALID_NODE_TYPE   = 0x06,
-};
+#include "common.h"
 
 /**************************ENUMS**************************************************************************/
 
@@ -77,6 +68,7 @@ typedef struct Variable
 {
     char *name;
     size_t len_name;
+    int value;
 } Variable;
 
 /*************************OPERATION INFO*******************************************************************/
@@ -129,12 +121,17 @@ const size_t size_of_operators = sizeof(operators) / sizeof(operators[0]);
 /***********************************************************************************************************/
 
 Node* NewNode(NodeType type, NodeValue value, Node* left, Node* right);
-//CodeError CreateNode(Node **dest, const char *data, Node *parent);
 NodeType DetectNodeType(const char *str);
 
 CodeError TreeDumpDot (Node* root);
 CodeError TreeDumpDot2(Node* root);
 
+void SaveTreeToFile(const char* filename, const Node* root);
 void FreeTree(Node** node);
+
+size_t LookupVar  (Variable *vars_table, const char* name, size_t len_name);
+size_t AddVartable(Variable *vars_table, const char* name, size_t len_name);
+Variable* GetVarsTable();
+void FreeVarsTable();
 
 #endif // _HTREE_FUNC

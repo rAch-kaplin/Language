@@ -63,32 +63,6 @@ add_link_options(${SANITIZER_FLAGS})
 
 add_subdirectory(libs/logger)
 add_subdirectory(libs/arg_parser)
+add_subdirectory(frontend)
+add_subdirectory(backend)
 
-#**********************************************************************************************************************
-
-set(SOURCES
-    ${CMAKE_CURRENT_SOURCE_DIR}/frontend/src/main.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/frontend/src/file_read.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/frontend/src/tree_func.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/frontend/src/lexical_analysis.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/frontend/src/syntax_analysis.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/graphviz/graph_dump.cpp
-)
-
-add_executable(do ${SOURCES})
-
-target_link_libraries(do PRIVATE logger_lib arg_parser_lib)
-
-target_include_directories(do PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}/frontend/include
-    ${CMAKE_CURRENT_SOURCE_DIR}/common
-    ${CMAKE_CURRENT_SOURCE_DIR}/DSL
-    ${CMAKE_CURRENT_SOURCE_DIR}/libs/logger
-    ${CMAKE_CURRENT_SOURCE_DIR}/libs/arg_parser
-)
-
-target_compile_options(do PRIVATE ${DEBUG_FLAGS} ${COMMON_COMPILE_OPTIONS} ${SANITIZER_FLAGS})
-target_link_options(do PRIVATE ${SANITIZER_FLAGS})
-
-target_compile_options(logger_lib PRIVATE ${DEBUG_FLAGS} ${COMMON_COMPILE_OPTIONS})
-target_compile_options(arg_parser_lib PRIVATE ${DEBUG_FLAGS} ${COMMON_COMPILE_OPTIONS})

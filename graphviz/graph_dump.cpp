@@ -228,14 +228,14 @@ CodeError TreeDumpDot2(Node* root)
     int buffer_len = snprintf(buffer, BUFFER_SIZE,
         "digraph G {\n"
         "\trankdir=HR;\n"
-        "\tbgcolor=\"#d8e3eb\";\n"
+        "\tbgcolor=\"#e6f0c0\";\n"
         "\tnode [fontname=\"Arial\", fontsize=12];\n");
 
     GenerateGraph2(root, buffer, &buffer_len);
     buffer_len += snprintf(buffer + buffer_len, BUFFER_SIZE - (size_t)buffer_len, "}\n");
 
 
-    FILE* file = fopen("graphviz/dot/dump2.dot", "w+");
+    FILE* file = fopen("../graphviz/dot/dump2.dot", "w+");
     if (!file)
     {
         fprintf(stderr, "Cannot open dot file\n");
@@ -247,13 +247,13 @@ CodeError TreeDumpDot2(Node* root)
     fclose(file);
     free(buffer);
 
-    system("mkdir -p graphviz/img graphviz/dot");
+    system("mkdir -p ../graphviz/img ../graphviz/dot");
 
     char png_name[PNG_NAME_SIZE] = {};
-    snprintf(png_name, sizeof(png_name), "graphviz/img/dump2_%d.png", dump_counter++);
+    snprintf(png_name, sizeof(png_name), "../graphviz/img/dump2_%d.png", dump_counter++);
 
     char command[command_buf] = {};
-    snprintf(command, sizeof(command), "dot -Tpng graphviz/dot/dump2.dot -o %s", png_name);
+    snprintf(command, sizeof(command), "dot -Tpng ../graphviz/dot/dump2.dot -o %s", png_name);
     system(command);
 
     return OK;

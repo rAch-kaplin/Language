@@ -3,7 +3,7 @@ project(logger LANGUAGES CXX)
 file(GLOB_RECURSE LOGGER_SOURCES "*.cpp")
 
 add_library(logger_lib STATIC
-    LOGGER_SOURCES
+    logger.cpp
     logger.h
 )
 
