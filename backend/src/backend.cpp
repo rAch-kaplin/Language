@@ -94,7 +94,7 @@ CodeError TranslateOperator(const Node *node, AsmFile *asm_file)
             }
             case OP_PRINT:
             {
-                _DLOG("case OP_PRINT");
+                _DLOG("case OP_PRINT"); //FIXME _D и __ нельзя
                 TranslatePrint(node, asm_file);
                 break;
             }

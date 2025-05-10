@@ -14,6 +14,7 @@
 const size_t MAX_VARS = 10;
 void PrintVariablesTable();
 
+//TODO script
 //./bin/frontend -i ../data/program.txt -o ../data/tree_file.txt
 //./bin/backend -i ../data/tree_file.txt -o ../data/file_asm.asm
 //../CPU/build/bin/asm -f ../data/file_asm.asm

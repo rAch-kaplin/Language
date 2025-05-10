@@ -196,7 +196,7 @@ Node* GetIf(Lexeme* lexemes, size_t* pos)
     return _IF(cond, body);
 }
 
-Node* GetWhile(Lexeme* lexemes, size_t* pos)
+Node* GetWhile(Lexeme* lexemes, size_t* pos) //FIXME
 {
     assert(lexemes);
     assert(pos);
