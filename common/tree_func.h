@@ -86,7 +86,7 @@ static const Operation_t operations[] =
     {MUL,            "*"},
     {DIV,            "/"},
     {EQ,  "scores_equal"},
-    {NEQ, "	scores_diff"},
+    {NEQ, "scores_diff"},
     {LT,        "losing"},
     {LE,    "not_losing"},
     {GT,       "leading"},
@@ -133,5 +133,8 @@ size_t LookupVar  (Variable *vars_table, const char* name, size_t len_name);
 size_t AddVartable(Variable *vars_table, const char* name, size_t len_name);
 Variable* GetVarsTable();
 void FreeVarsTable();
+
+void FixParents (Node* node);
+void FixTree    (Node* node);
 
 #endif // _HTREE_FUNC

@@ -58,7 +58,7 @@ int main(int argc, const char* argv[]) //TODO not const
 
         return 1;
     }
-    TreeDumpDot(prog);
+    TreeDumpDot (prog);
     TreeDumpDot2(prog);
 
     SaveTreeToFile(file_tree, prog);

@@ -25,6 +25,7 @@ static void         TranslatePushNodeValue  (const Node *node, AsmFile *asm_file
 static void         TranslatePopVar         (const Node *node, AsmFile *asm_file);
 static void         TranslateAssign         (const Node *node, AsmFile *asm_file);
 
+void FreeAsmFile(AsmFile* asm_file);
 //TODO add logs
 
 void FreeAsmFile(AsmFile* asm_file)
@@ -50,10 +51,12 @@ CodeError AssemblyTree(const Node *root, const char *file_asm)
         return MEM_ALLOC_FAIL;
     }
 
+    _DLOG("Translate OPERATOR");
     TranslateOperator(root, &asm_file);
+    _WRITE_ASM(&asm_file, "hlt\n");
 
-    FILE *fp = fopen(file_asm, "w+");
-    fwrite(asm_file.asm_buffer, asm_buffer_size, sizeof(char), fp);
+    FILE *fp = fopen(file_asm, "wt");
+    fprintf(fp, "%s\n", asm_file.asm_buffer);
 
     FreeAsmFile(&asm_file);
 
@@ -62,8 +65,9 @@ CodeError AssemblyTree(const Node *root, const char *file_asm)
 
 CodeError TranslateOperator(const Node *node, AsmFile *asm_file)
 {
-    assert(node);
-    assert(asm_file);
+    assert(asm_file);  //FIXME
+
+    if (node == nullptr) return OK;
 
     if (node->type == OPERATOR)
     {
@@ -71,32 +75,38 @@ CodeError TranslateOperator(const Node *node, AsmFile *asm_file)
         {
             case OP_SEMICOLON:
             {
+                _DLOG("case OP_SEMICOLON");
                 TranslateOperator(node->left, asm_file);
-                TranslateOperator(node->left, asm_file);
+                TranslateOperator(node->right, asm_file);
                 break; //TODO handle errors
             }
             case OP_IF:
             {
+                _DLOG("case OP_IF");
                 TranslateIf(node, asm_file);
                 break;
             }
             case OP_WHILE:
             {
+                _DLOG("case OP_WHILE");
                 TranslateWhile(node, asm_file);
                 break;
             }
             case OP_PRINT:
             {
+                _DLOG("case OP_PRINT");
                 TranslatePrint(node, asm_file);
                 break;
             }
             case OP_SCAN:
             {
+                _DLOG("case OP_SCAN");
                 TranslateScan(node, asm_file);
                 break;
             }
             case OP_ASSIGN:
             {
+                _DLOG("case OP_ASSIGN");
                 TranslateAssign(node, asm_file);
                 break;
             }
@@ -114,42 +124,32 @@ void TranslateIf(const Node *node, AsmFile *asm_file)
     assert(node);
     assert(asm_file);
 
+    size_t if_id = asm_file->endif++;
+
     TranslateExpression(node->left->right, asm_file);
-    TranslateExpression(node->left->left , asm_file);
+    TranslateExpression(node->left->left, asm_file);
 
     switch (node->left->value.oper)
     {
-        case EQ:
-            _WRITE_ASM(asm_file, "je endif_%zu:\n", asm_file->endif);
-            break;
-        case NEQ:
-           _WRITE_ASM(asm_file, "jne endif_%zu:\n", asm_file->endif);
-            break;
-        case LT:
-            _WRITE_ASM(asm_file, "jb endif_%zu:\n", asm_file->endif);
-            break;
-        case LE:
-            _WRITE_ASM(asm_file, "jbe endif_%zu:\n", asm_file->endif);
-            break;
-        case GT:
-            _WRITE_ASM(asm_file, "ja endif_%zu:\n", asm_file->endif);
-            break;
-        case GE:
-            _WRITE_ASM(asm_file, "jae endif_%zu:\n", asm_file->endif);
-            break;
+        case EQ:  _WRITE_ASM(asm_file, "je if_skip_block_%zu:\n",  if_id); break;
+        case NEQ: _WRITE_ASM(asm_file, "jne if_skip_block_%zu:\n", if_id); break;
+        case LT:  _WRITE_ASM(asm_file, "jb if_skip_block_%zu:\n",  if_id); break;
+        case LE:  _WRITE_ASM(asm_file, "jbe if_skip_block_%zu:\n", if_id); break;
+        case GT:  _WRITE_ASM(asm_file, "ja if_skip_block_%zu:\n",  if_id); break;
+        case GE:  _WRITE_ASM(asm_file, "jae if_skip_block_%zu:\n", if_id); break;
 
-        case SUB:
         case ADD:
+        case SUB:
         case MUL:
         case DIV:
-            break;
         default:
-            fprintf(stderr, "Unknow operation");
+            fprintf(stderr, "Unknown operator");
             return;
     }
 
     TranslateOperator(node->right, asm_file);
-    (asm_file->endif)++;
+
+    _WRITE_ASM(asm_file, "if_skip_block_%zu:\n", if_id);
 }
 
 void TranslateWhile(const Node *node, AsmFile *asm_file)
@@ -158,6 +158,7 @@ void TranslateWhile(const Node *node, AsmFile *asm_file)
     assert(asm_file);
 
     size_t while_counter = 0;
+    _DLOG("TranslateWhile");
 
     _WRITE_ASM(asm_file, "while_start_%zu:\n", while_counter);
 
@@ -178,7 +179,16 @@ void TranslateScan(const Node *node, AsmFile *asm_file)
     assert(node);
     assert(asm_file);
 
+    _DLOG("TranslateScan");
     _WRITE_ASM(asm_file, "in\n");
+
+    if (node->left->type != VAR)
+    {
+        fprintf(stderr, "ERROR: Variable node expected for POP\n");
+        return;
+    }
+
+    _WRITE_ASM(asm_file, "pop [%d]\n", (int)node->left->value.var);
 }
 
 void TranslatePrint(const Node *node, AsmFile *asm_file)
@@ -186,6 +196,7 @@ void TranslatePrint(const Node *node, AsmFile *asm_file)
     assert(node);
     assert(asm_file);
 
+    _DLOG("TranslatePrint");
     TranslateExpression(node->left, asm_file);
     _WRITE_ASM(asm_file, "out\n");
 }
@@ -195,6 +206,7 @@ void TranslateExpression(const Node *node, AsmFile *asm_file)
     assert(node);
     assert(asm_file);
 
+    _DLOG("TranslateExpression");
     if (node->type == OPERATION)
     {
         TranslateExpression(node->left,  asm_file);
@@ -203,15 +215,19 @@ void TranslateExpression(const Node *node, AsmFile *asm_file)
         switch (node->value.oper)
         {
             case ADD:
+                _DLOG("case ADD");
                 _WRITE_ASM(asm_file, "add\n");
                 break;
             case SUB:
+                _DLOG("case SUB");
                 _WRITE_ASM(asm_file, "sub\n");
                 break;
             case MUL:
+                _DLOG("case MUL");
                 _WRITE_ASM(asm_file, "mul\n");
                 break;
             case DIV:
+                _DLOG("case DIV");
                 _WRITE_ASM(asm_file, "div\n");
                 break;
 
@@ -233,22 +249,21 @@ void TranslateExpression(const Node *node, AsmFile *asm_file)
     }
 }
 
-void TranslatePushNodeValue(const Node *node, AsmFile *asm_file)
+void  TranslatePushNodeValue(const Node *node, AsmFile *asm_file)
 {
     assert(node);
     assert(asm_file);
 
-    _WRITE_ASM(asm_file, "push ");
+    _DLOG("TranslatePushNodeValue");
 
     if (node->type == VAR)
     {
-        Variable* vars_table = GetVarsTable();
-
-        _WRITE_ASM(asm_file, "[%d]\n", vars_table[node->value.var].value);
+        //Variable* vars_table = GetVarsTable();
+        _WRITE_ASM(asm_file, "push [%d]\n", (int)node->value.var);
     }
     else if (node->type == NUM)
     {
-        _WRITE_ASM(asm_file, "%d\n", (int)node->value.num);
+        _WRITE_ASM(asm_file, "push %d\n", (int)node->value.num);
     }
     else
     {
@@ -261,6 +276,7 @@ void TranslatePopVar(const Node *node, AsmFile *asm_file)
     assert(node);
     assert(asm_file);
 
+    _DLOG("TranslatePopVar");
     if (node->type != VAR)
     {
         fprintf(stderr, "ERROR: Variable node expected for POP\n");
@@ -269,7 +285,8 @@ void TranslatePopVar(const Node *node, AsmFile *asm_file)
 
     Variable* vars_table = GetVarsTable();
 
-    _WRITE_ASM(asm_file, "pop [%d]\n", vars_table[node->value.var].value);
+    _WRITE_ASM(asm_file, "push %d\n", vars_table[node->value.var].value);
+    _WRITE_ASM(asm_file, "pop [%d]\n", (int)node->value.var);
 }
 
 void TranslateAssign(const Node *node, AsmFile *asm_file)
@@ -277,6 +294,7 @@ void TranslateAssign(const Node *node, AsmFile *asm_file)
     assert(node);
     assert(asm_file);
 
+    _DLOG("TranslateAssign");
     TranslateExpression(node->right, asm_file);
     TranslatePopVar    (node->left, asm_file);
 }

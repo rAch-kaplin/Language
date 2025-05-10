@@ -12,6 +12,12 @@
 #include "backend.h"
 
 const size_t MAX_VARS = 10;
+void PrintVariablesTable();
+
+//./bin/frontend -i ../data/program.txt -o ../data/tree_file.txt
+//./bin/backend -i ../data/tree_file.txt -o ../data/file_asm.asm
+//../CPU/build/bin/asm -f ../data/file_asm.asm
+//../CPU/build/bin/proc
 
 int main(int argc, const char* argv[]) //TODO not const
 {
@@ -51,7 +57,12 @@ int main(int argc, const char* argv[]) //TODO not const
         fprintf(stderr, RED "Error: Failed to load tree from file %s\n" RESET, file_tree);
         return 1;
     }
+    FixTree     (root);
+    TreeDumpDot (root);
+    TreeDumpDot2(root);
 
+    PrintVariablesTable();
+    _DLOG("Start Assembly\n");
     AssemblyTree(root, file_asm);
 
     FreeTree(&root);
@@ -62,4 +73,30 @@ int main(int argc, const char* argv[]) //TODO not const
     printf(MAGENTA "Execution time: %f seconds\n\n" RESET, time_spent);
 
     printf(GREEN "End main! ==============================================================================\n\n" RESET);
+}
+
+void PrintVariablesTable()
+{
+    Variable* vars_table = GetVarsTable();
+    size_t count = 0;
+
+    printf("\n======== VARIABLES TABLE (MAX: %zu) =======\n", MAX_VARS);
+    printf("%-5s | %-20s | %-10s\n", "ID", "Name", "Length");
+    printf("------------------------------------------\n");
+
+    for (size_t i = 0; i < MAX_VARS; i++)
+    {
+        if (vars_table[i].name != nullptr)
+        {
+            printf("%-5zu | %-20s | %-10zu\n",
+                   i,
+                   vars_table[i].name,
+                   vars_table[i].len_name);
+            count++;
+        }
+    }
+
+    printf("------------------------------------------\n");
+    printf("Total variables: %zu/%zu\n", count, MAX_VARS);
+    printf("==========================================\n\n");
 }

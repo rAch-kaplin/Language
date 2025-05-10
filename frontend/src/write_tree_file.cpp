@@ -24,7 +24,7 @@ static void WriteTree(FILE* file, const Node* node, int indent)
             fprintf(file, "{OPERATION:\"%s\"\n", GetOperationStr(node->value.oper));
             break;
         case VAR:
-            fprintf(file, "{VAR:\"%zu\"}\n", node->value.var);
+            fprintf(file, "{VAR:\"%s\"}\n", GetVarsTable()[node->value.var].name);
             return;
         case NUM:
             fprintf(file, "{NUM:\"%lg\"}\n", node->value.num);

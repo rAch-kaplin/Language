@@ -42,6 +42,7 @@ const char* GetNodeLabel(const Node* node)
             else
             {
                 snprintf(label, sizeof(label), "var[%zu]", var_index);
+                // snprintf(label, sizeof(label), "var[%zu]", var_index);
             }
             break;
         }

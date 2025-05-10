@@ -15,3 +15,4 @@ target_include_directories(arg_parser_lib PUBLIC
 set_target_properties(arg_parser_lib PROPERTIES
     ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib
 )
+

@@ -1,9 +1,12 @@
-serve(1);
-width = 0;
-receive(w);
+receive(x);
 
-block (y scores_equal 5)
+block (x scores_equal 0)
 {
-    x = x + 1;
-    y = 5;
+    serve(1);
 }
+
+block (x scores_diff 0)
+{
+    serve(0);
+}
+

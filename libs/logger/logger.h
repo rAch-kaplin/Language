@@ -70,4 +70,7 @@ void log(LogLevel levelMsg, const char *file, size_t line, const char *func,  co
         fflush(GetLogger()->logFile);                                                   \
     } while(0)
 
+#define _DLOG(fmt, ...) LOG(LOGL_DEBUG, fmt, ##__VA_ARGS__)
+#define _ELOG(fmt, ...) LOG(LOGL_ERROR, fmt, ##__VA_ARGS__)
+
 #endif //_HLOGGER

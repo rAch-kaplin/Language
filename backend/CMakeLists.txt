@@ -6,14 +6,9 @@ file(GLOB_RECURSE BACKEND_SOURCES
     "${CMAKE_SOURCE_DIR}/frontend/src/tree_func.cpp"
     "${CMAKE_SOURCE_DIR}/frontend/src/file_read.cpp"
     "${CMAKE_SOURCE_DIR}/frontend/src/syntax_analysis.cpp"
+    "${CMAKE_SOURCE_DIR}/graphviz/graph_dump.cpp"
 )
 add_executable(backend ${BACKEND_SOURCES})
-
-# target_include_directories(backend PRIVATE
-#     include
-#     ${CMAKE_SOURCE_DIR}/common
-#     ${CMAKE_SOURCE_DIR}/DSL
-# )
 
 target_include_directories(backend PRIVATE
     include
