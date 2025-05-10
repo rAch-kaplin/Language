@@ -21,8 +21,46 @@
 					{NUM:"0"}
 				}
 				{OPERATOR:";"
-					{OPERATOR:"print"
-						{NUM:"0"}
+					{OPERATOR:"="
+						{VAR:"r"}
+						{NUM:"1"}
+					}
+					{OPERATOR:";"
+						{OPERATOR:"="
+							{VAR:"c"}
+							{NUM:"1"}
+						}
+						{OPERATOR:";"
+							{OPERATOR:"while"
+								{OPERATION:"<="
+									{VAR:"c"}
+									{VAR:"x"}
+								}
+								{OPERATOR:";"
+									{OPERATOR:"="
+										{VAR:"c"}
+										{OPERATION:"+"
+											{VAR:"c"}
+											{NUM:"1"}
+										}
+									}
+									{OPERATOR:";"
+										{OPERATOR:"="
+											{VAR:"r"}
+											{OPERATION:"*"
+												{VAR:"r"}
+												{VAR:"c"}
+											}
+										}
+									}
+								}
+							}
+							{OPERATOR:";"
+								{OPERATOR:"print"
+									{VAR:"r"}
+								}
+							}
+						}
 					}
 				}
 			}

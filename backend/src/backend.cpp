@@ -131,12 +131,12 @@ void TranslateIf(const Node *node, AsmFile *asm_file)
 
     switch (node->left->value.oper)
     {
-        case EQ:  _WRITE_ASM(asm_file, "je if_skip_block_%zu:\n",  if_id); break;
-        case NEQ: _WRITE_ASM(asm_file, "jne if_skip_block_%zu:\n", if_id); break;
-        case LT:  _WRITE_ASM(asm_file, "jb if_skip_block_%zu:\n",  if_id); break;
-        case LE:  _WRITE_ASM(asm_file, "jbe if_skip_block_%zu:\n", if_id); break;
-        case GT:  _WRITE_ASM(asm_file, "ja if_skip_block_%zu:\n",  if_id); break;
-        case GE:  _WRITE_ASM(asm_file, "jae if_skip_block_%zu:\n", if_id); break;
+        case EQ:  _WRITE_ASM(asm_file, "jne if_skip_block_%zu:\n",  if_id); break;
+        case NEQ: _WRITE_ASM(asm_file, "je if_skip_block_%zu:\n",   if_id); break;
+        case LT:  _WRITE_ASM(asm_file, "jae if_skip_block_%zu:\n",  if_id); break;
+        case LE:  _WRITE_ASM(asm_file, "ja if_skip_block_%zu:\n",   if_id); break;
+        case GT:  _WRITE_ASM(asm_file, "jbe if_skip_block_%zu:\n",  if_id); break;
+        case GE:  _WRITE_ASM(asm_file, "jb if_skip_block_%zu:\n",   if_id); break;
 
         case ADD:
         case SUB:
@@ -157,21 +157,37 @@ void TranslateWhile(const Node *node, AsmFile *asm_file)
     assert(node);
     assert(asm_file);
 
-    size_t while_counter = 0;
+    size_t while_id = asm_file->endwhile++;
     _DLOG("TranslateWhile");
 
-    _WRITE_ASM(asm_file, "while_start_%zu:\n", while_counter);
+    _WRITE_ASM(asm_file, "while_start_%zu:\n", while_id);
 
-    TranslateExpression(node->left , asm_file);
+    TranslateExpression(node->left->right, asm_file);
+    TranslateExpression(node->left->left, asm_file);
 
-    _WRITE_ASM(asm_file, "endwhile_%zu:\n", asm_file->endwhile);
+    switch (node->left->value.oper)
+    {
+        case EQ:  _WRITE_ASM(asm_file, "je while_end_%zu:\n",   while_id); break;
+        case NEQ: _WRITE_ASM(asm_file, "jne while_end_%zu:\n",  while_id); break;
+        case LT:  _WRITE_ASM(asm_file, "jb while_end_%zu:\n",   while_id); break;
+        case LE:  _WRITE_ASM(asm_file, "jbe while_end_%zu:\n",  while_id); break;
+        case GT:  _WRITE_ASM(asm_file, "ja while_end_%zu:\n",   while_id); break;
+        case GE:  _WRITE_ASM(asm_file, "jae while_end_%zu:\n",  while_id); break;
+
+        case ADD:
+        case SUB:
+        case MUL:
+        case DIV:
+        default:
+            fprintf(stderr, "Unknown operator in while condition");
+            return;
+    }
 
     TranslateOperator(node->right, asm_file);
 
-    _WRITE_ASM(asm_file, "jmp while_start%zu:\n", while_counter);
-    _WRITE_ASM(asm_file, "endwhile_%zu:\n"      , while_counter);
+    _WRITE_ASM(asm_file, "jmp while_start_%zu:\n", while_id);
 
-    while_counter++;
+    _WRITE_ASM(asm_file, "while_end_%zu:\n", while_id);
 }
 
 void TranslateScan(const Node *node, AsmFile *asm_file)
@@ -258,7 +274,6 @@ void  TranslatePushNodeValue(const Node *node, AsmFile *asm_file)
 
     if (node->type == VAR)
     {
-        //Variable* vars_table = GetVarsTable();
         _WRITE_ASM(asm_file, "push [%d]\n", (int)node->value.var);
     }
     else if (node->type == NUM)
@@ -285,7 +300,7 @@ void TranslatePopVar(const Node *node, AsmFile *asm_file)
 
     Variable* vars_table = GetVarsTable();
 
-    _WRITE_ASM(asm_file, "push %d\n", vars_table[node->value.var].value);
+    //_WRITE_ASM(asm_file, "push %d\n", vars_table[node->value.var].value);
     _WRITE_ASM(asm_file, "pop [%d]\n", (int)node->value.var);
 }
 

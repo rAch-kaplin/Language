@@ -22,3 +22,27 @@
 | `<=`                     | `not_losing`   | не проигрываем                |
 
 
+First version of the factorial programme:
+```
+receive(x);
+
+block (x scores_equal 0)
+{
+    serve(1);
+}
+
+block (x scores_diff 0)
+{
+    r = 1;
+    c = 1;
+
+    rally (c not_losing x)
+    {
+        c = c + 1;
+        r = r * c;
+    }
+
+    serve(r);
+}
+
+```

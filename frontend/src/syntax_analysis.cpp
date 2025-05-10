@@ -243,7 +243,13 @@ Node* GetWhile(Lexeme* lexemes, size_t* pos)
     }
     (*pos)++;
 
-    return _WHILE(cond, body);
+    Node *node = _WHILE(cond, body);
+    if (node == nullptr)
+    {
+        _DLOG("_WHILE returned nullptr node");
+    }
+
+    return node;
 }
 
 Node* GetPrint(Lexeme* lexemes, size_t* pos)
