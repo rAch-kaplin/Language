@@ -11,6 +11,7 @@
 void HandlSizeArg(int *CODE_SIZE, char **current_pos);
 bool IfEndFile(char *current_pos);
 size_t GetAsmFileSize(Assem *assem);
+char* SkipComment(char* current_pos);
 
 const char* Assembler(Assem *assem)
 {
@@ -28,7 +29,8 @@ const char* Assembler(Assem *assem)
 
     for (int i = 1;;i++)
     {
-        current_pos = SkipSpace(current_pos);
+        current_pos = SkipSpace     (current_pos);
+        current_pos = SkipComment   (current_pos);
 
         if (IfEndFile(current_pos)) break;
 
@@ -446,6 +448,21 @@ char* SkipSpace(char* current_pos)
     {
         current_pos++;
     }
+    return current_pos;
+}
+
+char* SkipComment(char* current_pos)
+{
+    if (*current_pos == ';')
+    {
+        while (*current_pos != '\n' && *current_pos != '\0')
+        {
+            current_pos++;
+        }
+
+        return current_pos;
+    }
+
     return current_pos;
 }
 

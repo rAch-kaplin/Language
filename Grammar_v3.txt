@@ -1,0 +1,40 @@
+<General>       ::= <Statement>*
+
+<Statement>     ::= <If>
+                 | <While>
+                 | <Print> ";"
+                 | <Scan> ";"
+                 | <Assignment> ";"
+                 | <FuncCall> ";"
+                 | <FuncDef>
+
+<FuncDef>       ::= "play" <FuncName> "(" <ParamList>? ")" "{" <Statement>* "}"
+<ParamList>     ::= <Var> ("," <Var>)*
+<FuncCall>      ::= <FuncName> "(" <ArgList>? ")"
+<ArgList>       ::= <Expression> ("," <Expression>)*
+
+<If>            ::= "block" "(" <Condition> ")" "{" <Statement>* "}"
+<While>         ::= "rally" "(" <Condition> ")" "{" <Statement>* "}"
+<Print>         ::= "serve" "(" <Expression> ")"
+<Scan>          ::= "receive" "(" <Var> ")"
+<Assignment>    ::= <Var> "=" <Expression>
+
+<Condition>     ::= <Expression> <ComparisonOp> <Expression>
+<Expression>    ::= <Term> (("+" | "-") <Term>)*
+<Term>          ::= <Factor> (("*" | "/") <Factor>)*
+<Factor>        ::= <Number>
+                 | <Var>
+                 | <FuncCall>
+                 | "(" <Expression> ")"
+
+<ComparisonOp>  ::= "scores_equal"
+                  | "scores_diff"
+                  | "leading"
+                  | "losing"
+                  | "not_behind"
+                  | "not_losing"
+
+<Var>           ::= "player_" <ID>
+<ID>            ::= [0-9]+
+<Number>        ::= [0-9]+
+<FuncName>      ::= [a-zA-Z_][a-zA-Z_0-9]*

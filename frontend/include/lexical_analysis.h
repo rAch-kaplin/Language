@@ -3,6 +3,8 @@
 
 #include "tree_func.h"
 
+const size_t MAX_VARS = 100;
+
 typedef enum LexemeType
 {
     LEX_NUM,
@@ -31,8 +33,8 @@ typedef struct Lexeme
 } Lexeme;
 
 Lexeme*     StringToLexemes(const char *str);
-Lexeme*     InitLexemeArray(const char* file_expr, size_t *lexeme_count);
-void        PrintLexemes(const Lexeme *lexeme_array, size_t lexeme_count);
+Lexeme*     InitLexemeArray(const char *file_expr, size_t *lexeme_count, Variable *vars_table);
+void        PrintLexemes(const Lexeme *lexeme_array, size_t lexeme_count, Variable *vars_table);
 void        DeinitLexemes(Lexeme* lexeme_array);
 
 #endif // _LEXICAL_ANALYSIS

@@ -13,18 +13,24 @@ typedef enum NodeType
     OPERATION,
 } NodeType;
 
+typedef enum Func
+{
+    FUNC_DEF,
+    FUNC_CALL,
+    FUNC_RET,
+} Func;
+
 typedef enum Operator
 {
     OP_SEMICOLON,
     OP_ASSIGN,
     OP_IF,
     OP_WHILE,
-    //OP_BREAK,
-    //OP_CONTINUE,
+    // OP_FUNC_DEF,
+    // OP_FUNC_CALL,
+    // OP_RETURN,
     OP_SCAN,
     OP_PRINT,
-    // OP_BLOCK,
-    // OP_FUNC_CALL,
 } Operator;
 
 typedef enum Operation
@@ -71,6 +77,7 @@ typedef struct Variable
     int value;
 } Variable;
 
+
 /*************************OPERATION INFO*******************************************************************/
 
 typedef struct
@@ -109,6 +116,8 @@ static const Operator_t operators[] =
     {OP_ASSIGN,            "="},
     {OP_IF,            "block"},
     {OP_WHILE,         "rally"},
+    // {OP_FUNC_DEF,       "play"},
+    // {OP_RETURN,          "ace"},
     //{OP_BREAK,       "timeout"},
     //{OP_CONTINUE,     "rotate"},
     {OP_PRINT,         "serve"},
@@ -117,22 +126,21 @@ static const Operator_t operators[] =
 
 const size_t size_of_operators = sizeof(operators) / sizeof(operators[0]);
 
-
 /***********************************************************************************************************/
 
 Node* NewNode(NodeType type, NodeValue value, Node* left, Node* right);
 NodeType DetectNodeType(const char *str);
 
-CodeError TreeDumpDot (Node* root);
-CodeError TreeDumpDot2(Node* root);
+CodeError TreeDumpDot (Node* root, Variable *vars_table);
+CodeError TreeDumpDot2(Node* root, Variable *vars_table);
 
-void SaveTreeToFile(const char* filename, const Node* root);
+void SaveTreeToFile(const char* filename, const Node* root, Variable *vars_table);
 void FreeTree(Node** node);
 
 size_t LookupVar  (Variable *vars_table, const char* name, size_t len_name);
 size_t AddVartable(Variable *vars_table, const char* name, size_t len_name);
-Variable* GetVarsTable();
-void FreeVarsTable();
+//Variable* GetVarsTable();
+void FreeVarsTable(Variable *vars_table);
 
 void FixParents (Node* node);
 void FixTree    (Node* node);

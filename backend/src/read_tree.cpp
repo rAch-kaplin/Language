@@ -242,7 +242,7 @@ static CodeError HandleVarNode(Node** node, char** buffer)
     Variable* vars_table = GetVarsTable();
     size_t var_pos = AddVartable(vars_table, var_str, strlen(var_str));
 
-    NodeValue value = {};;
+    NodeValue value = {};
     value.var = var_pos;
     *node = NewNode(VAR, value, nullptr, nullptr);
     if (!*node) return MEM_ALLOC_FAIL;

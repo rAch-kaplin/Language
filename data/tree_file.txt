@@ -1,11 +1,11 @@
 {OPERATOR:";"
 	{OPERATOR:"input"
-		{VAR:"x"}
+		{VAR:"(null)"}
 	}
 	{OPERATOR:";"
 		{OPERATOR:"if"
 			{OPERATION:"=="
-				{VAR:"x"}
+				{VAR:"(null)"}
 				{NUM:"0"}
 			}
 			{OPERATOR:";"
@@ -17,39 +17,39 @@
 		{OPERATOR:";"
 			{OPERATOR:"if"
 				{OPERATION:"!="
-					{VAR:"x"}
+					{VAR:"(null)"}
 					{NUM:"0"}
 				}
 				{OPERATOR:";"
 					{OPERATOR:"="
-						{VAR:"r"}
+						{VAR:"(null)"}
 						{NUM:"1"}
 					}
 					{OPERATOR:";"
 						{OPERATOR:"="
-							{VAR:"c"}
+							{VAR:"(null)"}
 							{NUM:"1"}
 						}
 						{OPERATOR:";"
 							{OPERATOR:"while"
 								{OPERATION:"<="
-									{VAR:"c"}
-									{VAR:"x"}
+									{VAR:"(null)"}
+									{VAR:"(null)"}
 								}
 								{OPERATOR:";"
 									{OPERATOR:"="
-										{VAR:"c"}
+										{VAR:"(null)"}
 										{OPERATION:"+"
-											{VAR:"c"}
+											{VAR:"(null)"}
 											{NUM:"1"}
 										}
 									}
 									{OPERATOR:";"
 										{OPERATOR:"="
-											{VAR:"r"}
+											{VAR:"(null)"}
 											{OPERATION:"*"
-												{VAR:"r"}
-												{VAR:"c"}
+												{VAR:"(null)"}
+												{VAR:"(null)"}
 											}
 										}
 									}
@@ -57,7 +57,7 @@
 							}
 							{OPERATOR:";"
 								{OPERATOR:"print"
-									{VAR:"r"}
+									{VAR:"(null)"}
 								}
 							}
 						}

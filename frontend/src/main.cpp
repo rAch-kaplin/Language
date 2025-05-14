@@ -12,8 +12,6 @@
 #include "arg_parser.h"
 #include "../common/colors.h"
 
-const size_t MAX_VARS = 10;
-
 int main(int argc, const char* argv[]) //TODO not const
 {
     printf(GREEN "\nStart main! ============================================================================\n\n" RESET);
@@ -45,26 +43,27 @@ int main(int argc, const char* argv[]) //TODO not const
         fprintf(stderr, RED "Can't open file_tree, please input -i *.txt\n" RESET);
         return 1;
     }
+    Variable vars_table[MAX_VARS] = {};
 
     LOG(LOGL_DEBUG, "Start ReadProgram");
-    Node *prog = ReadProgram(program);
+    Node *prog = ReadProgram(program, vars_table);
     if (!prog)
     {
         printf(RED "Program reading ERROR\n" RESET);
 
         FreeTree(&prog);
-        FreeVarsTable();
+        //FreeVarsTable();
         LoggerDeinit();
 
         return 1;
     }
-    TreeDumpDot (prog);
-    TreeDumpDot2(prog);
+    TreeDumpDot (prog, vars_table);
+    TreeDumpDot2(prog, vars_table);
 
-    SaveTreeToFile(file_tree, prog);
+    SaveTreeToFile(file_tree, prog, vars_table);
 
     FreeTree(&prog);
-    FreeVarsTable();
+    //FreeVarsTable();
     LoggerDeinit();
 
     clock_t end = clock();

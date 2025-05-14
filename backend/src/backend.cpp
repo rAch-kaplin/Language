@@ -298,8 +298,6 @@ void TranslatePopVar(const Node *node, AsmFile *asm_file)
         return;
     }
 
-    Variable* vars_table = GetVarsTable();
-
     //_WRITE_ASM(asm_file, "push %d\n", vars_table[node->value.var].value);
     _WRITE_ASM(asm_file, "pop [%d]\n", (int)node->value.var);
 }

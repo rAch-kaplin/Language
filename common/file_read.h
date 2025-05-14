@@ -6,7 +6,7 @@
 size_t GetSizeFile(FILE *name_base);
 char *ReadProgramToBuffer(const char *name_base, size_t *file_size);
 
-Node* ReadProgram       (const char *file_expr);
+Node* ReadProgram       (const char *file_expr, Variable *vars_table);
 Node* LoadTreeFromFile  (const char* filename);
 
 #endif //_READ_TREE

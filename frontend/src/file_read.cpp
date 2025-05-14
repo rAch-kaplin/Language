@@ -12,25 +12,25 @@
 
 const size_t BUFFER_SIZE = 10;
 
-Node* ReadProgram(const char *file_program)
+Node* ReadProgram(const char *file_program, Variable *vars_table)
 {
     size_t lexeme_count = 0;
-    Lexeme *lexeme_array = InitLexemeArray(file_program, &lexeme_count);
+    Lexeme *lexeme_array = InitLexemeArray(file_program, &lexeme_count, vars_table);
     if (lexeme_array == nullptr)
     {
         LOG(LOGL_ERROR, "Lexeme_array was not allocated");
         return nullptr;
     }
-    PrintLexemes(lexeme_array, lexeme_count);
+    PrintLexemes(lexeme_array, lexeme_count, vars_table);
 
     size_t cur = 0;
     LOG(LOGL_DEBUG, "Start General() func");
-    Node *node_G = General(lexeme_array, &cur);
+    Node *node_G = General(lexeme_array, &cur, vars_table);
 
+    FreeVarsTable(vars_table);
     DeinitLexemes(lexeme_array);
 
     return node_G;
-    //return nullptr;
 }
 
 

@@ -14,13 +14,13 @@ const size_t PNG_NAME_SIZE = 64;
 const size_t BUFFER_SIZE = 327680;
 const size_t command_buf = 512;
 
-const char* GetNodeLabel(const Node* node);
+const char* GetNodeLabel(const Node* node, Variable *vars_table);
 const char* GetNodeColor(const Node* node);
 
-int GenerateGraph (Node* node, char* buffer, int* buffer_len);
-int GenerateGraph2(Node* node, char* buffer, int* buffer_len);
+int GenerateGraph (Node* node, Variable *vars_table, char* buffer, int* buffer_len);
+int GenerateGraph2(Node* node, Variable *vars_table, char* buffer, int* buffer_len);
 
-const char* GetNodeLabel(const Node* node)
+const char* GetNodeLabel(const Node* node, Variable *vars_table)
 {
     static char label[size_op] = "";
 
@@ -31,7 +31,6 @@ const char* GetNodeLabel(const Node* node)
             break;
         case VAR:
         {
-            Variable* vars_table = GetVarsTable();
             size_t var_index = node->value.var;
 
             if (vars_table[var_index].name != nullptr)
@@ -104,7 +103,7 @@ const char* GetNodeColor(const Node* node)
     }
 }
 
-CodeError TreeDumpDot(Node* root)
+CodeError TreeDumpDot(Node* root, Variable *vars_table)
 {
     static int dump_counter = 0;
 
@@ -121,7 +120,7 @@ CodeError TreeDumpDot(Node* root)
                            "\trankdir = HR;\n"
                            "\tbgcolor=\"#e6f0c0\";\n");
 
-    GenerateGraph(root, buffer, &buffer_len);
+    GenerateGraph(root, vars_table, buffer, &buffer_len);
 
     buffer_len += snprintf(buffer + buffer_len, BUFFER_SIZE - (size_t)buffer_len, "}\n");
 
@@ -150,11 +149,11 @@ CodeError TreeDumpDot(Node* root)
     return OK;
 }
 
-int GenerateGraph(Node* node, char* buffer, int* buffer_len)
+int GenerateGraph(Node* node, Variable *vars_table, char* buffer, int* buffer_len)
 {
     if (!node) return 0;
 
-    const char* label = GetNodeLabel(node);
+    const char* label = GetNodeLabel(node, vars_table);
     const char* color = GetNodeColor(node);
 
     *buffer_len += snprintf(buffer + *buffer_len, BUFFER_SIZE - (size_t)*buffer_len,
@@ -173,7 +172,7 @@ int GenerateGraph(Node* node, char* buffer, int* buffer_len)
 
     if (node->left)
     {
-        *buffer_len += GenerateGraph(node->left, buffer, buffer_len);
+        *buffer_len += GenerateGraph(node->left, vars_table, buffer, buffer_len);
         *buffer_len += snprintf(buffer + *buffer_len, BUFFER_SIZE - (size_t)*buffer_len,
                                 "\tnode%p:left -> node%p [color=\"%s\" style=bold; weight=1000];\n",
                                 node, node->left, color);
@@ -181,7 +180,7 @@ int GenerateGraph(Node* node, char* buffer, int* buffer_len)
 
     if (node->right)
     {
-        *buffer_len += GenerateGraph(node->right, buffer, buffer_len);
+        *buffer_len += GenerateGraph(node->right, vars_table, buffer, buffer_len);
         *buffer_len += snprintf(buffer + *buffer_len, BUFFER_SIZE - (size_t)*buffer_len,
                                 "\tnode%p:right -> node%p [color=\"%s\" style=bold; weight=1000];\n",
                                 node, node->right, color);
@@ -190,11 +189,11 @@ int GenerateGraph(Node* node, char* buffer, int* buffer_len)
     return 0;
 }
 
-int GenerateGraph2(Node* node, char* buffer, int* buffer_len)
+int GenerateGraph2(Node* node, Variable *vars_table, char* buffer, int* buffer_len)
 {
     if (!node) return 0;
 
-    const char* label = GetNodeLabel(node);
+    const char* label = GetNodeLabel(node, vars_table);
     const char* color = GetNodeColor(node);
 
     *buffer_len += snprintf(buffer + *buffer_len, BUFFER_SIZE - (size_t)*buffer_len,
@@ -203,7 +202,7 @@ int GenerateGraph2(Node* node, char* buffer, int* buffer_len)
 
     if (node->left)
     {
-        *buffer_len += GenerateGraph2(node->left, buffer, buffer_len);
+        *buffer_len += GenerateGraph2(node->left, vars_table, buffer, buffer_len);
         *buffer_len += snprintf(buffer + *buffer_len, BUFFER_SIZE - (size_t)*buffer_len,
             "\tnode%p -> node%p [color=\"%s\"; style=bold;  weight=1000;];\n",
             node, node->left, color);
@@ -211,7 +210,7 @@ int GenerateGraph2(Node* node, char* buffer, int* buffer_len)
 
     if (node->right)
     {
-        *buffer_len += GenerateGraph2(node->right, buffer, buffer_len);
+        *buffer_len += GenerateGraph2(node->right, vars_table, buffer, buffer_len);
         *buffer_len += snprintf(buffer + *buffer_len, BUFFER_SIZE - (size_t)*buffer_len,
             "\tnode%p -> node%p [color=\"%s\"; style=bold; weight=1000;];\n",
             node, node->right, color);
@@ -220,7 +219,7 @@ int GenerateGraph2(Node* node, char* buffer, int* buffer_len)
     return 0;
 }
 
-CodeError TreeDumpDot2(Node* root)
+CodeError TreeDumpDot2(Node* root, Variable *vars_table)
 {
     static int dump_counter = 0;
     char* buffer = (char*)calloc(BUFFER_SIZE, sizeof(char));
@@ -232,7 +231,7 @@ CodeError TreeDumpDot2(Node* root)
         "\tbgcolor=\"#e6f0c0\";\n"
         "\tnode [fontname=\"Arial\", fontsize=12];\n");
 
-    GenerateGraph2(root, buffer, &buffer_len);
+    GenerateGraph2(root, vars_table, buffer, &buffer_len);
     buffer_len += snprintf(buffer + buffer_len, BUFFER_SIZE - (size_t)buffer_len, "}\n");
 
 

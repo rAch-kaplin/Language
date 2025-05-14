@@ -10,29 +10,20 @@
 /*********************************************************************************************************************************/
 
 const size_t lexeme_array_size = 1000;
-const size_t MAX_VARS = 100;
+//const size_t MAX_VARS = 100;
 
-static void SkipSpaces(const char **buffer);
-static void AddLexeme(Lexeme *lexeme_array, size_t *lexeme_count, LexemeType type, double value);
-static bool IsNum(const char *cur);
-//static bool IsOperator(const char *op);
-static bool GetOperatorType (Lexeme *lexeme_array, size_t lexeme_count, const char **cur);
-static bool GetOperationType(Lexeme *lexeme_array, size_t lexeme_count, const char **cur);
+static void SkipSpaces          (const char **buffer);
+static bool IsNum               (const char *cur);
+static void AddLexeme           (Lexeme *lexeme_array, size_t *lexeme_count, LexemeType type, double value);
+static bool GetOperatorType     (Lexeme *lexeme_array, size_t lexeme_count, const char **cur);
+static bool GetOperationType    (Lexeme *lexeme_array, size_t lexeme_count, const char **cur);
 
-Lexeme* StringToLexemes(const char *str, size_t *lexeme_count);
+Lexeme* StringToLexemes(const char *str, size_t *lexeme_count, Variable *vars_table);
 
 /*********************************************************************************************************************************/
 
-Variable* GetVarsTable() //TODO struct
+void FreeVarsTable(Variable *vars_table)
 {
-    static Variable vars_table[MAX_VARS] = {};
-    return vars_table;
-}
-
-void FreeVarsTable()
-{
-    Variable* vars_table = GetVarsTable();
-
     for (size_t i = 0; i < MAX_VARS; i++)
     {
         LOG(LOGL_DEBUG, "free ---> %s ", vars_table[i].name);
@@ -83,7 +74,7 @@ static void SkipSpaces(const char **buffer)
     while (isspace(**buffer)) (*buffer)++;
 }
 
-Lexeme* StringToLexemes(const char *str, size_t *lexeme_count)
+Lexeme* StringToLexemes(const char *str, size_t *lexeme_count, Variable *vars_table)
 {
     Lexeme *lexeme_array = (Lexeme*)calloc(lexeme_array_size, sizeof(Lexeme));
     if (lexeme_array == nullptr)
@@ -159,7 +150,7 @@ Lexeme* StringToLexemes(const char *str, size_t *lexeme_count)
         else if (isalpha(*cur))
         {
             const char *start = cur;
-            while (isalpha(*cur)) cur++;
+            while (isalpha(*cur) || *cur == '_') cur++;
 
             size_t name_len = (size_t)(cur - start);
 
@@ -172,7 +163,6 @@ Lexeme* StringToLexemes(const char *str, size_t *lexeme_count)
             strncpy(name, start, name_len);
             name[name_len] = '\0';
 
-            Variable* vars_table = GetVarsTable();
             size_t var_pos = AddVartable(vars_table, name, name_len);
             LOG(LOGL_DEBUG, "VAR: <%s>", name);
             lexeme_array[*lexeme_count].type = LEX_VAR;
@@ -243,7 +233,7 @@ static bool GetOperatorType(Lexeme *lexeme_array, size_t lexeme_count, const cha
     return false;
 }
 
-void PrintLexemes(const Lexeme* lexeme_array, size_t lexeme_count)
+void PrintLexemes(const Lexeme* lexeme_array, size_t lexeme_count, Variable *vars_table)
 {
     assert(lexeme_array);
 
@@ -287,31 +277,31 @@ void PrintLexemes(const Lexeme* lexeme_array, size_t lexeme_count)
                 break;
 
             case LEX_LBRACKET:
-                printf(YELLOW "LBRACKET   " RESET ": '" YELLOW "('" RESET "\n");
+                printf(YELLOW "LBRACKET   "     RESET ": '" YELLOW "('" RESET "\n");
                 break;
 
             case LEX_RBRACKET:
-                printf(YELLOW "RBRACKET   " RESET ": '" YELLOW ")'" RESET "\n");
+                printf(YELLOW "RBRACKET   "     RESET ": '" YELLOW ")'" RESET "\n");
                 break;
 
             case LEX_LBRACE:
-                printf(YELLOW "LEX_LBRACE   " RESET ": '" YELLOW "{'" RESET "\n");
+                printf(YELLOW "LEX_LBRACE   "   RESET ": '" YELLOW "{'" RESET "\n");
                 break;
 
             case LEX_RBRACE:
-                printf(YELLOW "LEX_RBRACE   " RESET ": '" YELLOW "}'" RESET "\n");
+                printf(YELLOW "LEX_RBRACE   "   RESET ": '" YELLOW "}'" RESET "\n");
                 break;
 
             case LEX_SEMICOLON:
-                printf(RED "SEMICOLON  " RESET ": '" YELLOW ";'" RESET "\n");
+                printf(RED    "SEMICOLON  "     RESET ": '" YELLOW ";'" RESET "\n");
                 break;
 
             case LEX_END:
-                printf(RED "END        " RESET ": '" RED "0'" RESET "\n");
+                printf(RED    "END        "     RESET ": '" RED "0'" RESET "\n");
                 break;
 
             default:
-                printf(REDB " UNKNOWN   " RESET " type: %d\n", lex->type);
+                printf(REDB   " UNKNOWN   "     RESET " type: %d\n", lex->type);
                 break;
         }
     }
@@ -319,7 +309,7 @@ void PrintLexemes(const Lexeme* lexeme_array, size_t lexeme_count)
     printf("\n");
 }
 
-Lexeme* InitLexemeArray(const char* file_expr, size_t *lexeme_count)
+Lexeme* InitLexemeArray(const char* file_expr, size_t *lexeme_count, Variable *vars_table)
 {
     assert(file_expr);
 
@@ -332,7 +322,7 @@ Lexeme* InitLexemeArray(const char* file_expr, size_t *lexeme_count)
     }
 
     LOG(LOGL_DEBUG, "Start StringToLexemes()");
-    Lexeme *lexeme_array = StringToLexemes(expr_buffer, lexeme_count);
+    Lexeme *lexeme_array = StringToLexemes(expr_buffer, lexeme_count, vars_table);
     free(expr_buffer);
 
     LOG(LOGL_DEBUG, "Init Lexeme Array SUCCESS");

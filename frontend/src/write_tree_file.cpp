@@ -4,12 +4,12 @@
 
 #include "tree_func.h"
 
-static void WriteTree(FILE* file, const Node* node, int indent);
+static void WriteTree(FILE* file, const Node* node, int indent, Variable *vars_table);
 static void WriteTab(int level, FILE* file);
 static const char* GetOperatorStr(Operator optr);
 static const char* GetOperationStr(Operation oper);
 
-static void WriteTree(FILE* file, const Node* node, int indent)
+static void WriteTree(FILE* file, const Node* node, int indent, Variable *vars_table)
 {
     if (!node) return;
 
@@ -24,7 +24,7 @@ static void WriteTree(FILE* file, const Node* node, int indent)
             fprintf(file, "{OPERATION:\"%s\"\n", GetOperationStr(node->value.oper));
             break;
         case VAR:
-            fprintf(file, "{VAR:\"%s\"}\n", GetVarsTable()[node->value.var].name);
+            fprintf(file, "{VAR:\"%s\"}\n", vars_table[node->value.var].name);
             return;
         case NUM:
             fprintf(file, "{NUM:\"%lg\"}\n", node->value.num);
@@ -33,8 +33,8 @@ static void WriteTree(FILE* file, const Node* node, int indent)
             return;
     }
 
-    WriteTree(file, node->left, indent + 1);
-    WriteTree(file, node->right, indent + 1);
+    WriteTree(file, node->left,  indent + 1, vars_table);
+    WriteTree(file, node->right, indent + 1, vars_table);
 
     WriteTab(indent, file);
     fprintf(file, "}\n");
@@ -80,7 +80,7 @@ static const char* GetOperationStr(Operation oper)
     }
 }
 
-void SaveTreeToFile(const char* filename, const Node* root)
+void SaveTreeToFile(const char* filename, const Node* root, Variable *vars_table)
 {
     FILE* file = fopen(filename, "w");
     if (!file)
@@ -89,6 +89,6 @@ void SaveTreeToFile(const char* filename, const Node* root)
         return;
     }
 
-    WriteTree(file, root, 0);
+    WriteTree(file, root, 0, vars_table);
     fclose(file);
 }
