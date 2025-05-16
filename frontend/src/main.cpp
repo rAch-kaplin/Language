@@ -43,27 +43,29 @@ int main(int argc, const char* argv[]) //TODO not const
         fprintf(stderr, RED "Can't open file_tree, please input -i *.txt\n" RESET);
         return 1;
     }
-    Variable vars_table[MAX_VARS] = {};
+    NameTable name_table = {};
 
     LOG(LOGL_DEBUG, "Start ReadProgram");
-    Node *prog = ReadProgram(program, vars_table);
+    Node *prog = ReadProgram(program, &name_table);
     if (!prog)
     {
         printf(RED "Program reading ERROR\n" RESET);
 
         FreeTree(&prog);
-        FreeVarsTable(vars_table);
+        //FreeVarsTable(vars_table);
+        FreeNameTable(&name_table);
         LoggerDeinit();
 
         return 1;
     }
-    TreeDumpDot (prog, vars_table);
-    TreeDumpDot2(prog, vars_table);
+    TreeDumpDot (prog, &name_table);
+    TreeDumpDot2(prog, &name_table);
 
-    SaveTreeToFile(file_tree, prog, vars_table);
+    SaveTreeToFile(file_tree, prog, &name_table);
 
     FreeTree(&prog);
-    FreeVarsTable(vars_table);
+    //FreeVarsTable(vars_table);
+    FreeNameTable(&name_table);
     LoggerDeinit();
 
     clock_t end = clock();

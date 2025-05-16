@@ -17,6 +17,6 @@ typedef struct AsmFile
     size_t endwhile;
 } AsmFile;
 
-CodeError AssemblyTree(const Node *root, Variable *vars_table, const char *file_asm);
+CodeError AssemblyTree(const Node *root, NameTable *name_table, const char *file_asm);
 
 #endif //_HBACKEND

@@ -15,12 +15,12 @@ const size_t asm_buffer_size = 16048;
         }                                                                                       \
     } while (0)
 
-static CodeError    TranslateOperator       (const Node *node, Variable *vars_table, AsmFile *asm_file);
-static void         TranslateIf             (const Node *node, Variable *vars_table, AsmFile *asm_file);
-static void         TranslateWhile          (const Node *node, Variable *vars_table, AsmFile *asm_file);
-static void         TranslateExpression     (const Node *node, Variable *vars_table, AsmFile *asm_file);
-static void         TranslateAssign         (const Node *node, Variable *vars_table, AsmFile *asm_file);
-static void         TranslatePrint          (const Node *node, Variable *vars_table, AsmFile *asm_file);
+static CodeError    TranslateOperator       (const Node *node, NameTable *name_table, AsmFile *asm_file);
+static void         TranslateIf             (const Node *node, NameTable *name_table, AsmFile *asm_file);
+static void         TranslateWhile          (const Node *node, NameTable *name_table, AsmFile *asm_file);
+static void         TranslateExpression     (const Node *node, NameTable *name_table, AsmFile *asm_file);
+static void         TranslateAssign         (const Node *node, NameTable *name_table, AsmFile *asm_file);
+static void         TranslatePrint          (const Node *node, NameTable *name_table, AsmFile *asm_file);
 static void         TranslateScan           (const Node *node, AsmFile *asm_file);
 static void         TranslatePushNodeValue  (const Node *node, AsmFile *asm_file);
 static void         TranslatePopVar         (const Node *node, AsmFile *asm_file);
@@ -39,7 +39,7 @@ void FreeAsmFile(AsmFile* asm_file)
     }
 }
 
-CodeError AssemblyTree(const Node *root, Variable *vars_table, const char *file_asm)
+CodeError AssemblyTree(const Node *root, NameTable *name_table, const char *file_asm)
 {
     assert(root);
 
@@ -52,7 +52,7 @@ CodeError AssemblyTree(const Node *root, Variable *vars_table, const char *file_
     }
 
     _DLOG("Translate OPERATOR");
-    TranslateOperator(root, vars_table, &asm_file);
+    TranslateOperator(root, name_table, &asm_file);
     _WRITE_ASM(&asm_file, "hlt\n");
 
     FILE *fp = fopen(file_asm, "wt");
@@ -63,7 +63,7 @@ CodeError AssemblyTree(const Node *root, Variable *vars_table, const char *file_
     return OK;
 }
 
-CodeError TranslateOperator(const Node *node, Variable *vars_table, AsmFile *asm_file)
+CodeError TranslateOperator(const Node *node, NameTable *name_table, AsmFile *asm_file)
 {
     assert(asm_file);  //FIXME
 
@@ -76,26 +76,26 @@ CodeError TranslateOperator(const Node *node, Variable *vars_table, AsmFile *asm
             case OP_SEMICOLON:
             {
                 _DLOG("case OP_SEMICOLON");
-                TranslateOperator(node->left,  vars_table, asm_file);
-                TranslateOperator(node->right, vars_table, asm_file);
+                TranslateOperator(node->left,  name_table, asm_file);
+                TranslateOperator(node->right, name_table, asm_file);
                 break; //TODO handle errors
             }
             case OP_IF:
             {
                 _DLOG("case OP_IF");
-                TranslateIf(node, vars_table, asm_file);
+                TranslateIf(node, name_table, asm_file);
                 break;
             }
             case OP_WHILE:
             {
                 _DLOG("case OP_WHILE");
-                TranslateWhile(node, vars_table, asm_file);
+                TranslateWhile(node, name_table, asm_file);
                 break;
             }
             case OP_PRINT:
             {
                 _DLOG("case OP_PRINT"); //FIXME _D и __ нельзя
-                TranslatePrint(node, vars_table, asm_file);
+                TranslatePrint(node, name_table, asm_file);
                 break;
             }
             case OP_SCAN:
@@ -107,7 +107,7 @@ CodeError TranslateOperator(const Node *node, Variable *vars_table, AsmFile *asm
             case OP_ASSIGN:
             {
                 _DLOG("case OP_ASSIGN");
-                TranslateAssign(node, vars_table, asm_file);
+                TranslateAssign(node, name_table, asm_file);
                 break;
             }
 
@@ -119,15 +119,17 @@ CodeError TranslateOperator(const Node *node, Variable *vars_table, AsmFile *asm
     return OK;
 }
 
-void TranslateIf(const Node *node, Variable *vars_table, AsmFile *asm_file)
+void TranslateIf(const Node *node, NameTable *name_table, AsmFile *asm_file)
 {
     assert(node);
     assert(asm_file);
 
     size_t if_id = asm_file->endif++;
 
-    TranslateExpression(node->left->right, vars_table, asm_file);
-    TranslateExpression(node->left->left,  vars_table, asm_file);
+    TranslateExpression(node->left->right, name_table, asm_file);
+    TranslateExpression(node->left->left,  name_table, asm_file);
+
+    _WRITE_ASM(asm_file, "\n;===============  IF  ============== \n");
 
     switch (node->left->value.oper)
     {
@@ -147,12 +149,12 @@ void TranslateIf(const Node *node, Variable *vars_table, AsmFile *asm_file)
             return;
     }
 
-    TranslateOperator(node->right, vars_table, asm_file);
+    TranslateOperator(node->right, name_table, asm_file);
 
     _WRITE_ASM(asm_file, "if_skip_block_%zu:\n", if_id);
 }
 
-void TranslateWhile(const Node *node, Variable *vars_table, AsmFile *asm_file)
+void TranslateWhile(const Node *node, NameTable *name_table, AsmFile *asm_file)
 {
     assert(node);
     assert(asm_file);
@@ -162,8 +164,10 @@ void TranslateWhile(const Node *node, Variable *vars_table, AsmFile *asm_file)
 
     _WRITE_ASM(asm_file, "while_start_%zu:\n", while_id);
 
-    TranslateExpression(node->left->right, vars_table, asm_file);
-    TranslateExpression(node->left->left,  vars_table, asm_file);
+    TranslateExpression(node->left->right, name_table, asm_file);
+    TranslateExpression(node->left->left,  name_table, asm_file);
+
+    _WRITE_ASM(asm_file, "\n;===============  WHILE  ============== \n");
 
     switch (node->left->value.oper)
     {
@@ -183,7 +187,7 @@ void TranslateWhile(const Node *node, Variable *vars_table, AsmFile *asm_file)
             return;
     }
 
-    TranslateOperator(node->right, vars_table, asm_file);
+    TranslateOperator(node->right, name_table, asm_file);
 
     _WRITE_ASM(asm_file, "jmp while_start_%zu:\n", while_id);
 
@@ -196,6 +200,7 @@ void TranslateScan(const Node *node, AsmFile *asm_file)
     assert(asm_file);
 
     _DLOG("TranslateScan");
+    _WRITE_ASM(asm_file, "\n;===============  SCAN  ============== \n");
     _WRITE_ASM(asm_file, "in\n");
 
     if (node->left->type != VAR)
@@ -207,17 +212,18 @@ void TranslateScan(const Node *node, AsmFile *asm_file)
     _WRITE_ASM(asm_file, "pop [%d]\n", (int)node->left->value.var);
 }
 
-void TranslatePrint(const Node *node, Variable *vars_table, AsmFile *asm_file)
+void TranslatePrint(const Node *node, NameTable *name_table, AsmFile *asm_file)
 {
     assert(node);
     assert(asm_file);
 
     _DLOG("TranslatePrint");
-    TranslateExpression(node->left, vars_table, asm_file);
+    TranslateExpression(node->left, name_table, asm_file);
+    _WRITE_ASM(asm_file, "\n;===============  PRINT  ============== \n");
     _WRITE_ASM(asm_file, "out\n");
 }
 
-void TranslateExpression(const Node *node, Variable *vars_table, AsmFile *asm_file)
+void TranslateExpression(const Node *node, NameTable *name_table, AsmFile *asm_file)
 {
     assert(node);
     assert(asm_file);
@@ -225,8 +231,8 @@ void TranslateExpression(const Node *node, Variable *vars_table, AsmFile *asm_fi
     _DLOG("TranslateExpression");
     if (node->type == OPERATION)
     {
-        TranslateExpression(node->left,  vars_table, asm_file);
-        TranslateExpression(node->right, vars_table, asm_file);
+        TranslateExpression(node->left,  name_table, asm_file);
+        TranslateExpression(node->right, name_table, asm_file);
 
         switch (node->value.oper)
         {
@@ -302,13 +308,13 @@ void TranslatePopVar(const Node *node, AsmFile *asm_file)
     _WRITE_ASM(asm_file, "pop [%d]\n", (int)node->value.var);
 }
 
-void TranslateAssign(const Node *node, Variable *vars_table, AsmFile *asm_file)
+void TranslateAssign(const Node *node, NameTable *name_table, AsmFile *asm_file)
 {
     assert(node);
     assert(asm_file);
 
     _DLOG("TranslateAssign");
-    TranslateExpression(node->right, vars_table, asm_file);
+    TranslateExpression(node->right, name_table, asm_file);
     TranslatePopVar    (node->left, asm_file);
 }
 

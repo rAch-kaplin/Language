@@ -7,17 +7,24 @@
 #include "logger.h"
 #include "DSL.h"
 
-static Node* ParseBlock         (Lexeme* lexemes, size_t* pos, Variable *vars_table);
-static Node* GetStatement       (Lexeme* lexemes, size_t* pos, Variable *vars_table);
-static Node* GetIf              (Lexeme* lexemes, size_t* pos, Variable *vars_table);
-static Node* GetWhile           (Lexeme* lexemes, size_t* pos, Variable *vars_table);
-static Node* GetAssignment      (Lexeme* lexemes, size_t* pos, Variable *vars_table);
-static Node* GetCondition       (Lexeme* lexemes, size_t* pos, Variable *vars_table);
-static Node* GetExpression      (Lexeme* lexemes, size_t* pos, Variable *vars_table);
-static Node* GetTerm            (Lexeme* lexemes, size_t* pos, Variable *vars_table);
-static Node* GetFactor          (Lexeme* lexemes, size_t* pos, Variable *vars_table);
-static Node* GetPrint           (Lexeme* lexemes, size_t* pos, Variable *vars_table);
+static Node* ParseBlock         (Lexeme* lexemes, size_t* pos, NameTable *name_table);
+static Node* GetStatement       (Lexeme* lexemes, size_t* pos, NameTable *name_table);
+static Node* GetIf              (Lexeme* lexemes, size_t* pos, NameTable *name_table);
+static Node* GetWhile           (Lexeme* lexemes, size_t* pos, NameTable *name_table);
+static Node* GetAssignment      (Lexeme* lexemes, size_t* pos, NameTable *name_table);
+static Node* GetCondition       (Lexeme* lexemes, size_t* pos, NameTable *name_table);
+static Node* GetExpression      (Lexeme* lexemes, size_t* pos, NameTable *name_table);
+static Node* GetTerm            (Lexeme* lexemes, size_t* pos, NameTable *name_table);
+static Node* GetFactor          (Lexeme* lexemes, size_t* pos, NameTable *name_table);
+static Node* GetPrint           (Lexeme* lexemes, size_t* pos, NameTable *name_table);
 static Node* GetScan            (Lexeme* lexemes, size_t* pos);
+
+static Node* GetFuncDef         (Lexeme* lexemes, size_t* pos, NameTable* name_table);
+static Node* GetFuncCall        (Lexeme* lexemes, size_t* pos, NameTable* name_table);
+static Node* GetParamList       (Lexeme* lexemes, size_t* pos, NameTable* name_table);
+static Node* GetArgList         (Lexeme* lexemes, size_t* pos, NameTable* name_table);
+static Node* GetReturn          (Lexeme* lexemes, size_t* pos, NameTable* name_table);
+static Node* GetVar             (Lexeme* lexemes, size_t* pos, NameTable* name_table);
 
 static void SyntaxERROR(const char* message, size_t pos, LexemeType expected, LexemeType found);
 
@@ -27,16 +34,17 @@ static void SyntaxERROR(const char* message, size_t pos, LexemeType expected, Le
             pos, message, expected, found);
 }
 
-Node* General(Lexeme* lexemes, size_t* pos, Variable *vars_table)
+Node* General(Lexeme* lexemes, size_t* pos, NameTable *name_table)
 {
     assert(lexemes && pos);
 
     Node* program_root = nullptr;
     Node* current_node = nullptr;
-
+    _DLOG("General()");
     while (lexemes[*pos].type != LEX_END)
     {
-        Node* new_node = GetStatement(lexemes, pos, vars_table);
+        Node* new_node = GetStatement(lexemes, pos, name_table);
+        _DLOG("Exit from GetStatement()");
 
         if (program_root == nullptr)
         {
@@ -53,7 +61,7 @@ Node* General(Lexeme* lexemes, size_t* pos, Variable *vars_table)
     return program_root;
 }
 
-Node* ParseBlock(Lexeme* lexemes, size_t* pos, Variable *vars_table)
+Node* ParseBlock(Lexeme* lexemes, size_t* pos, NameTable *name_table)
 {
     assert(lexemes && pos);
 
@@ -62,7 +70,7 @@ Node* ParseBlock(Lexeme* lexemes, size_t* pos, Variable *vars_table)
 
     while (lexemes[*pos].type != LEX_RBRACE && lexemes[*pos].type != LEX_END)
     {
-        Node* new_node = GetStatement(lexemes, pos, vars_table);
+        Node* new_node = GetStatement(lexemes, pos, name_table);
 
         if (block_root == nullptr)
         {
@@ -79,7 +87,8 @@ Node* ParseBlock(Lexeme* lexemes, size_t* pos, Variable *vars_table)
     return block_root;
 }
 
-Node* GetStatement(Lexeme* lexemes, size_t* pos, Variable *vars_table)
+#if 0
+Node* GetStatement(Lexeme* lexemes, size_t* pos, NameTable *name_table)
 {
     assert(lexemes);
     assert(pos);
@@ -91,15 +100,15 @@ Node* GetStatement(Lexeme* lexemes, size_t* pos, Variable *vars_table)
         switch (lexemes[*pos].value.optr)
         {
             case OP_IF:
-                node = GetIf(lexemes, pos, vars_table);
+                node = GetIf(lexemes, pos, name_table);
                 break;
 
             case OP_WHILE:
-                node = GetWhile(lexemes, pos, vars_table);
+                node = GetWhile(lexemes, pos, name_table);
                 break;
 
             case OP_PRINT:
-                node = GetPrint(lexemes, pos, vars_table);
+                node = GetPrint(lexemes, pos, name_table);
                 if (lexemes[*pos].type != LEX_SEMICOLON)
                 {
                     SyntaxERROR("Expected ';' after print", *pos, LEX_SEMICOLON, lexemes[*pos].type);
@@ -128,7 +137,7 @@ Node* GetStatement(Lexeme* lexemes, size_t* pos, Variable *vars_table)
              lexemes[*pos+1].type == LEX_OPERATOR &&
              lexemes[*pos+1].value.optr == OP_ASSIGN)
     {
-        node = GetAssignment(lexemes, pos, vars_table);
+        node = GetAssignment(lexemes, pos, name_table);
         if (lexemes[*pos].type != LEX_SEMICOLON)
         {
             SyntaxERROR("Expected ';' after assignment", *pos, LEX_SEMICOLON, lexemes[*pos].type);
@@ -145,8 +154,9 @@ Node* GetStatement(Lexeme* lexemes, size_t* pos, Variable *vars_table)
 
     return nullptr;
 }
+#endif
 
-Node* GetIf(Lexeme* lexemes, size_t* pos, Variable *vars_table)
+Node* GetIf(Lexeme* lexemes, size_t* pos, NameTable *name_table)
 {
     assert(lexemes);
     assert(pos);
@@ -160,7 +170,7 @@ Node* GetIf(Lexeme* lexemes, size_t* pos, Variable *vars_table)
     }
     (*pos)++;
 
-    Node* cond = GetCondition(lexemes, pos, vars_table);
+    Node* cond = GetCondition(lexemes, pos, name_table);
     if (!cond)
     {
         return nullptr;
@@ -180,7 +190,7 @@ Node* GetIf(Lexeme* lexemes, size_t* pos, Variable *vars_table)
     }
     (*pos)++;
 
-    Node* body = ParseBlock(lexemes, pos, vars_table);
+    Node* body = ParseBlock(lexemes, pos, name_table);
     if (!body)
     {
         return nullptr;
@@ -196,7 +206,7 @@ Node* GetIf(Lexeme* lexemes, size_t* pos, Variable *vars_table)
     return _IF(cond, body);
 }
 
-Node* GetWhile(Lexeme* lexemes, size_t* pos, Variable *vars_table) //FIXME
+Node* GetWhile(Lexeme* lexemes, size_t* pos, NameTable *name_table) //FIXME
 {
     assert(lexemes);
     assert(pos);
@@ -210,7 +220,7 @@ Node* GetWhile(Lexeme* lexemes, size_t* pos, Variable *vars_table) //FIXME
     }
     (*pos)++;
 
-    Node* cond = GetCondition(lexemes, pos, vars_table);
+    Node* cond = GetCondition(lexemes, pos, name_table);
     if (!cond)
     {
         return nullptr;
@@ -230,7 +240,7 @@ Node* GetWhile(Lexeme* lexemes, size_t* pos, Variable *vars_table) //FIXME
     }
     (*pos)++;
 
-    Node* body = ParseBlock(lexemes, pos, vars_table);
+    Node* body = ParseBlock(lexemes, pos, name_table);
     if (!body)
     {
         return nullptr;
@@ -252,7 +262,7 @@ Node* GetWhile(Lexeme* lexemes, size_t* pos, Variable *vars_table) //FIXME
     return node;
 }
 
-Node* GetPrint(Lexeme* lexemes, size_t* pos, Variable *vars_table)
+Node* GetPrint(Lexeme* lexemes, size_t* pos, NameTable *name_table)
 {
     assert(lexemes);
     assert(pos);
@@ -266,7 +276,7 @@ Node* GetPrint(Lexeme* lexemes, size_t* pos, Variable *vars_table)
     }
     (*pos)++;
 
-    Node* expr = GetExpression(lexemes, pos, vars_table);
+    Node* expr = GetExpression(lexemes, pos, name_table);
     if (!expr)
     {
         SyntaxERROR("Expected expression in print", *pos, LEX_NUM, lexemes[*pos].type);
@@ -315,7 +325,7 @@ Node* GetScan(Lexeme* lexemes, size_t* pos)
     return _SCAN(var);
 }
 
-Node* GetAssignment(Lexeme* lexemes, size_t* pos, Variable *vars_table)
+Node* GetAssignment(Lexeme* lexemes, size_t* pos, NameTable *name_table)
 {
     assert(lexemes);
     assert(pos);
@@ -330,7 +340,7 @@ Node* GetAssignment(Lexeme* lexemes, size_t* pos, Variable *vars_table)
     }
     (*pos)++;
 
-    Node* expr = GetExpression(lexemes, pos, vars_table);
+    Node* expr = GetExpression(lexemes, pos, name_table);
     if (!expr)
     {
         SyntaxERROR("Expected expression in assignment", *pos, LEX_NUM, lexemes[*pos].type);
@@ -340,12 +350,12 @@ Node* GetAssignment(Lexeme* lexemes, size_t* pos, Variable *vars_table)
     return _ASSIGN(var, expr);
 }
 
-Node* GetCondition(Lexeme* lexemes, size_t* pos, Variable *vars_table)
+Node* GetCondition(Lexeme* lexemes, size_t* pos, NameTable *name_table)
 {
     assert(lexemes);
     assert(pos);
 
-    Node* left = GetExpression(lexemes, pos, vars_table);
+    Node* left = GetExpression(lexemes, pos, name_table);
     if (!left)
     {
         SyntaxERROR("Expected left expression in condition", *pos, LEX_NUM, lexemes[*pos].type);
@@ -361,7 +371,7 @@ Node* GetCondition(Lexeme* lexemes, size_t* pos, Variable *vars_table)
     Operation op = lexemes[*pos].value.oper;
     (*pos)++;
 
-    Node* right = GetExpression(lexemes, pos, vars_table);
+    Node* right = GetExpression(lexemes, pos, name_table);
     if (!right)
     {
         SyntaxERROR("Expected right expression in condition", *pos, LEX_NUM, lexemes[*pos].type);
@@ -387,12 +397,12 @@ Node* GetCondition(Lexeme* lexemes, size_t* pos, Variable *vars_table)
     }
 }
 
-Node* GetExpression(Lexeme* lexemes, size_t* pos, Variable *vars_table)
+Node* GetExpression(Lexeme* lexemes, size_t* pos, NameTable *name_table)
 {
     assert(lexemes);
     assert(pos);
 
-    Node* node = GetTerm(lexemes, pos, vars_table);
+    Node* node = GetTerm(lexemes, pos, name_table);
     if (!node)
     {
         return nullptr;
@@ -403,7 +413,7 @@ Node* GetExpression(Lexeme* lexemes, size_t* pos, Variable *vars_table)
     {
         Operation op = lexemes[*pos].value.oper;
         (*pos)++;
-        Node* right = GetTerm(lexemes, pos, vars_table);
+        Node* right = GetTerm(lexemes, pos, name_table);
         if (!right)
         {
             return nullptr;
@@ -415,12 +425,12 @@ Node* GetExpression(Lexeme* lexemes, size_t* pos, Variable *vars_table)
     return node;
 }
 
-Node* GetTerm(Lexeme* lexemes, size_t* pos, Variable *vars_table)
+Node* GetTerm(Lexeme* lexemes, size_t* pos, NameTable *name_table)
 {
     assert(lexemes);
     assert(pos);
 
-    Node* node = GetFactor(lexemes, pos, vars_table);
+    Node* node = GetFactor(lexemes, pos, name_table);
     if (!node)
     {
         return nullptr;
@@ -431,7 +441,7 @@ Node* GetTerm(Lexeme* lexemes, size_t* pos, Variable *vars_table)
     {
         Operation op = lexemes[*pos].value.oper;
         (*pos)++;
-        Node* right = GetFactor(lexemes, pos, vars_table);
+        Node* right = GetFactor(lexemes, pos, name_table);
         if (!right)
         {
             return nullptr;
@@ -442,8 +452,8 @@ Node* GetTerm(Lexeme* lexemes, size_t* pos, Variable *vars_table)
 
     return node;
 }
-
-Node* GetFactor(Lexeme* lexemes, size_t* pos, Variable *vars_table)
+#if 0
+Node* GetFactor(Lexeme* lexemes, size_t* pos, NameTable *name_table)
 {
     assert(lexemes);
     assert(pos);
@@ -460,7 +470,7 @@ Node* GetFactor(Lexeme* lexemes, size_t* pos, Variable *vars_table)
 
         case LEX_LBRACKET:
             (*pos)++;
-            expr = GetExpression(lexemes, pos, vars_table);
+            expr = GetExpression(lexemes, pos, name_table);
             if (!expr)
             {
                 return nullptr;
@@ -487,4 +497,302 @@ Node* GetFactor(Lexeme* lexemes, size_t* pos, Variable *vars_table)
     }
 
     return nullptr;
+}
+#endif
+
+/******************************************************************************************************************************* */
+
+#define _FUNC_DEF(name, params, body)   NewNode(OPERATOR, OPERATOR_VALUE(OP_FUNC_DEF), name, body)
+#define _FUNC_CALL(name, args)          NewNode(OPERATOR, OPERATOR_VALUE(OP_FUNC_CALL), name, args)
+#define _RETURN(expr)                   NewNode(OPERATOR, OPERATOR_VALUE(OP_RET), expr, nullptr)
+
+Node* GetStatement(Lexeme* lexemes, size_t* pos, NameTable* name_table)
+{
+    assert(lexemes && pos && name_table);
+
+    _DLOG("Enter GetStatement()");
+    Node* node = nullptr;
+
+    if (lexemes[*pos].type == LEX_OPERATOR)
+    {
+        switch (lexemes[*pos].value.optr)
+        {
+            case OP_IF:
+                node = GetIf(lexemes, pos, name_table);
+                break;
+            case OP_WHILE:
+                node = GetWhile(lexemes, pos, name_table);
+                break;
+            case OP_PRINT:
+                node = GetPrint(lexemes, pos, name_table);
+                if (lexemes[*pos].type != LEX_SEMICOLON)
+                {
+                    SyntaxERROR("Expected ';' after print", *pos, LEX_SEMICOLON, lexemes[*pos].type);
+                    return nullptr;
+                }
+                (*pos)++;
+                break;
+            case OP_SCAN:
+                node = GetScan(lexemes, pos);
+                if (lexemes[*pos].type != LEX_SEMICOLON)
+                {
+                    SyntaxERROR("Expected ';' after scan", *pos, LEX_SEMICOLON, lexemes[*pos].type);
+                    return nullptr;
+                }
+                (*pos)++;
+                break;
+            case OP_FUNC_DEF:
+                node = GetFuncDef(lexemes, pos, name_table);
+                _DLOG("Exit GetFuncDef()");
+                break;
+            case OP_RET:
+                node = GetReturn(lexemes, pos, name_table);
+                if (lexemes[*pos].type != LEX_SEMICOLON)
+                {
+                    SyntaxERROR("Expected ';' after return", *pos, LEX_SEMICOLON, lexemes[*pos].type);
+                    return nullptr;
+                }
+                (*pos)++;
+                break;
+            default:
+                break;
+        }
+    }
+    else if (lexemes[*pos].type == LEX_FUNC)
+    {
+        node = GetFuncCall(lexemes, pos, name_table);
+        _DLOG("Exit GetFuncCall()");
+        if (lexemes[*pos].type != LEX_SEMICOLON)
+        {
+            SyntaxERROR("Expected ';' after function call", *pos, LEX_SEMICOLON, lexemes[*pos].type);
+            return nullptr;
+        }
+        (*pos)++;
+    }
+    else if (lexemes[*pos].type == LEX_VAR &&
+             lexemes[*pos+1].type == LEX_OPERATOR &&
+             lexemes[*pos+1].value.optr == OP_ASSIGN)
+             {
+        node = GetAssignment(lexemes, pos, name_table);
+        if (lexemes[*pos].type != LEX_SEMICOLON)
+        {
+            SyntaxERROR("Expected ';' after assignment", *pos, LEX_SEMICOLON, lexemes[*pos].type);
+            return nullptr;
+        }
+        (*pos)++;
+    }
+
+    return node ? NewNode(OPERATOR, OPERATOR_VALUE(OP_SEMICOLON), node, nullptr) : nullptr;
+}
+
+Node* GetFactor(Lexeme* lexemes, size_t* pos, NameTable* name_table)
+{
+    assert(lexemes && pos && name_table);
+
+    switch (lexemes[*pos].type)
+    {
+        case LEX_NUM:
+        {
+            return _NUM(lexemes[(*pos)++].value.num);
+        }
+        case LEX_VAR:
+        {
+            return _VAR(lexemes[(*pos)++].value.var);
+        }
+        case LEX_LBRACKET:
+        {
+            (*pos)++;
+            Node* expr = GetExpression(lexemes, pos, name_table);
+            if (!expr) return nullptr;
+            if (lexemes[*pos].type != LEX_RBRACKET)
+            {
+                SyntaxERROR("Expected ')'", *pos, LEX_RBRACKET, lexemes[*pos].type);
+                return nullptr;
+            }
+            (*pos)++;
+            return expr;
+        }
+        default:
+        {
+            SyntaxERROR("Expected number, variable or '('", *pos, LEX_NUM, lexemes[*pos].type);
+            return nullptr;
+        }
+    }
+    return nullptr;
+}
+
+static Node* GetFuncDef(Lexeme* lexemes, size_t* pos, NameTable* name_table)
+{
+    assert(lexemes && pos && name_table);
+
+    _DLOG("Enter GetFuncDef()");
+
+    (*pos)++;
+
+    if (lexemes[*pos].type != LEX_FUNC)
+    {
+        SyntaxERROR("Expected function name", *pos, LEX_FUNC, lexemes[*pos].type);
+        return nullptr;
+    }
+    Node* func_name = _FUNC(lexemes[*pos].value.func);
+    (*pos)++;
+
+    if (lexemes[*pos].type != LEX_LBRACKET)
+    {
+        SyntaxERROR("Expected '('", *pos, LEX_LBRACKET, lexemes[*pos].type);
+        return nullptr;
+    }
+    (*pos)++;
+
+    Node* params = nullptr;
+    if (lexemes[*pos].type != LEX_RBRACKET)
+    {
+        params = GetParamList(lexemes, pos, name_table);
+        if (!params) return nullptr;
+    }
+
+    if (lexemes[*pos].type != LEX_RBRACKET)
+    {
+        SyntaxERROR("Expected ')'", *pos, LEX_RBRACKET, lexemes[*pos].type);
+        return nullptr;
+    }
+    (*pos)++;
+
+    if (lexemes[*pos].type != LEX_LBRACE)
+    {
+        SyntaxERROR("Expected '{'", *pos, LEX_LBRACE, lexemes[*pos].type);
+        return nullptr;
+    }
+    (*pos)++;
+
+    Node* body = ParseBlock(lexemes, pos, name_table);
+    if (!body) return nullptr;
+
+    if (lexemes[*pos].type != LEX_RBRACE)
+    {
+        SyntaxERROR("Expected '}'", *pos, LEX_RBRACE, lexemes[*pos].type);
+        return nullptr;
+    }
+    (*pos)++;
+
+    Node* header = NewNode(OPERATOR, OPERATOR_VALUE(OP_SEMICOLON), func_name, params);
+
+    return NewNode(OPERATOR, OPERATOR_VALUE(OP_FUNC_DEF), header, body);
+}
+
+static Node* GetFuncCall(Lexeme* lexemes, size_t* pos, NameTable* name_table)
+{
+    assert(lexemes && pos && name_table);
+
+    _DLOG("Enter GetFuncCall()");
+    if (lexemes[*pos].type != LEX_FUNC)
+    {
+        SyntaxERROR("Expected function name", *pos, LEX_FUNC, lexemes[*pos].type);
+        return nullptr;
+    }
+    Node* func_name = _FUNC(lexemes[*pos].value.func);
+    (*pos)++;
+
+    if (lexemes[*pos].type != LEX_LBRACKET)
+        {
+            SyntaxERROR("Expected '('", *pos, LEX_LBRACKET, lexemes[*pos].type);
+            return nullptr;
+        }
+        (*pos)++;
+
+        Node* args = nullptr;
+        if (lexemes[*pos].type != LEX_RBRACKET)
+        {
+            args = GetParamList(lexemes, pos, name_table);
+            if (!args) return nullptr;
+        }
+
+        if (lexemes[*pos].type != LEX_RBRACKET)
+        {
+            printf("%p\n", args);
+            SyntaxERROR("Expected ')'", *pos, LEX_RBRACKET, lexemes[*pos].type);
+            return nullptr;
+        }
+        (*pos)++;
+
+    return _FUNC_CALL(func_name, args);
+}
+
+static Node* GetParamList(Lexeme* lexemes, size_t* pos, NameTable* name_table)
+{
+    assert(lexemes && pos && name_table);
+
+    _DLOG("Enter GetParamList()");
+    Node* first_param = GetVar(lexemes, pos, name_table);
+    if (!first_param) return nullptr;
+
+    Node* current = first_param;
+    while (lexemes[*pos].type == LEX_COMMA)
+    {
+        (*pos)++;
+        Node* next_param = GetVar(lexemes, pos, name_table);
+        if (!next_param) return nullptr;
+
+        current->right = next_param;
+        current = next_param;
+    }
+
+    return first_param;
+}
+
+static Node* GetArgList(Lexeme* lexemes, size_t* pos, NameTable* name_table)
+{
+    assert(lexemes && pos && name_table);
+
+    _DLOG("Enter GetArgList()");
+    Node* first_arg = GetExpression(lexemes, pos, name_table);
+    if (!first_arg) return nullptr;
+
+    Node* current = first_arg;
+    while (lexemes[*pos].type == LEX_COMMA)
+    {
+        (*pos)++;
+        Node* next_arg = GetExpression(lexemes, pos, name_table);
+        if (!next_arg) return nullptr;
+
+        current->right = next_arg;
+        current = next_arg;
+    }
+
+    return first_arg;
+}
+
+static Node* GetReturn(Lexeme* lexemes, size_t* pos, NameTable* name_table)
+{
+    assert(lexemes && pos && name_table);
+
+    (*pos)++;
+
+    Node* expr = GetExpression(lexemes, pos, name_table);
+    if (!expr) return nullptr;
+
+    return _RETURN(expr);
+}
+
+static Node* GetVar(Lexeme* lexemes, size_t* pos, NameTable* name_table)
+{
+    assert(lexemes && pos && name_table);
+
+    if (lexemes[*pos].type != LEX_VAR)
+    {
+        SyntaxERROR("Expected variable", *pos, LEX_VAR, lexemes[*pos].type);
+        return nullptr;
+    }
+
+    size_t var_index = lexemes[*pos].value.var;
+    if (var_index >= MAX_VARS || name_table->vars_table[var_index].name == nullptr)
+    {
+        SyntaxERROR("Undefined variable", *pos, LEX_VAR, lexemes[*pos].type);
+        return nullptr;
+    }
+
+    Node* var_node = _VAR(var_index);
+    (*pos)++;
+
+    return var_node;
 }

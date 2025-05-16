@@ -14,13 +14,13 @@ const size_t PNG_NAME_SIZE = 64;
 const size_t BUFFER_SIZE = 327680;
 const size_t command_buf = 512;
 
-const char* GetNodeLabel(const Node* node, Variable *vars_table);
+const char* GetNodeLabel(const Node* node, NameTable *name_table);
 const char* GetNodeColor(const Node* node);
 
-int GenerateGraph (Node* node, Variable *vars_table, char* buffer, int* buffer_len);
-int GenerateGraph2(Node* node, Variable *vars_table, char* buffer, int* buffer_len);
+int GenerateGraph (Node* node, NameTable *name_table, char* buffer, int* buffer_len);
+int GenerateGraph2(Node* node, NameTable *name_table, char* buffer, int* buffer_len);
 
-const char* GetNodeLabel(const Node* node, Variable *vars_table)
+const char* GetNodeLabel(const Node* node, NameTable *name_table)
 {
     static char label[size_op] = "";
 
@@ -33,15 +33,29 @@ const char* GetNodeLabel(const Node* node, Variable *vars_table)
         {
             size_t var_index = node->value.var;
 
-            if (vars_table[var_index].name != nullptr)
+            if (name_table->vars_table[var_index].name != nullptr)
             {
-                LOG(LOGL_DEBUG, "GetNOdeLabel(): p=%p", vars_table[var_index].name);
-                snprintf(label, sizeof(label), "%s", vars_table[var_index].name);
+                LOG(LOGL_DEBUG, "GetNOdeLabel(): p=%p", name_table->vars_table[var_index].name);
+                snprintf(label, sizeof(label), "%s", name_table->vars_table[var_index].name);
             }
             else
             {
                 snprintf(label, sizeof(label), "var[%zu]", var_index);
-                // snprintf(label, sizeof(label), "var[%zu]", var_index);
+            }
+            break;
+        }
+         case FUNC:
+        {
+            size_t func_index = node->value.func;
+
+            if (name_table->func_table[func_index].name != nullptr)
+            {
+                LOG(LOGL_DEBUG, "GetNOdeLabel(): p=%p", name_table->func_table[func_index].name);
+                snprintf(label, sizeof(label), "%s", name_table->func_table[func_index].name);
+            }
+            else
+            {
+                snprintf(label, sizeof(label), "var[%zu]", func_index);
             }
             break;
         }
@@ -63,12 +77,19 @@ const char* GetNodeLabel(const Node* node, Variable *vars_table)
         {
             const char* operator_name = nullptr;
 
-            for (size_t i = 0; i < size_of_operators; i++)
+            if (node->value.optr == OP_FUNC_CALL)
             {
-                if (operators[i].optr == node->value.optr)
+                operator_name = "call";
+            }
+            else
+            {
+                for (size_t i = 0; i < size_of_operators; i++)
                 {
-                    operator_name = operators[i].keyword;
-                    break;
+                    if (operators[i].optr == node->value.optr)
+                    {
+                        operator_name = operators[i].keyword;
+                        break;
+                    }
                 }
             }
 
@@ -94,6 +115,7 @@ const char* GetNodeColor(const Node* node)
         case NUM:           return "#ffca3a";
         case VAR:           return "#ff595e";
         case OPERATION:     return "#8ac926";
+        case FUNC:          return "#f772c2";
 
         case OPERATOR:
             if (node->value.optr == OP_SEMICOLON)
@@ -103,7 +125,7 @@ const char* GetNodeColor(const Node* node)
     }
 }
 
-CodeError TreeDumpDot(Node* root, Variable *vars_table)
+CodeError TreeDumpDot(Node* root, NameTable *name_table)
 {
     static int dump_counter = 0;
 
@@ -120,7 +142,7 @@ CodeError TreeDumpDot(Node* root, Variable *vars_table)
                            "\trankdir = HR;\n"
                            "\tbgcolor=\"#e6f0c0\";\n");
 
-    GenerateGraph(root, vars_table, buffer, &buffer_len);
+    GenerateGraph(root, name_table, buffer, &buffer_len);
 
     buffer_len += snprintf(buffer + buffer_len, BUFFER_SIZE - (size_t)buffer_len, "}\n");
 
@@ -149,11 +171,11 @@ CodeError TreeDumpDot(Node* root, Variable *vars_table)
     return OK;
 }
 
-int GenerateGraph(Node* node, Variable *vars_table, char* buffer, int* buffer_len)
+int GenerateGraph(Node* node, NameTable *name_table, char* buffer, int* buffer_len)
 {
     if (!node) return 0;
 
-    const char* label = GetNodeLabel(node, vars_table);
+    const char* label = GetNodeLabel(node, name_table);
     const char* color = GetNodeColor(node);
 
     *buffer_len += snprintf(buffer + *buffer_len, BUFFER_SIZE - (size_t)*buffer_len,
@@ -172,7 +194,7 @@ int GenerateGraph(Node* node, Variable *vars_table, char* buffer, int* buffer_le
 
     if (node->left)
     {
-        *buffer_len += GenerateGraph(node->left, vars_table, buffer, buffer_len);
+        *buffer_len += GenerateGraph(node->left, name_table, buffer, buffer_len);
         *buffer_len += snprintf(buffer + *buffer_len, BUFFER_SIZE - (size_t)*buffer_len,
                                 "\tnode%p:left -> node%p [color=\"%s\" style=bold; weight=1000];\n",
                                 node, node->left, color);
@@ -180,7 +202,7 @@ int GenerateGraph(Node* node, Variable *vars_table, char* buffer, int* buffer_le
 
     if (node->right)
     {
-        *buffer_len += GenerateGraph(node->right, vars_table, buffer, buffer_len);
+        *buffer_len += GenerateGraph(node->right, name_table, buffer, buffer_len);
         *buffer_len += snprintf(buffer + *buffer_len, BUFFER_SIZE - (size_t)*buffer_len,
                                 "\tnode%p:right -> node%p [color=\"%s\" style=bold; weight=1000];\n",
                                 node, node->right, color);
@@ -189,11 +211,11 @@ int GenerateGraph(Node* node, Variable *vars_table, char* buffer, int* buffer_le
     return 0;
 }
 
-int GenerateGraph2(Node* node, Variable *vars_table, char* buffer, int* buffer_len)
+int GenerateGraph2(Node* node, NameTable *name_table, char* buffer, int* buffer_len)
 {
     if (!node) return 0;
 
-    const char* label = GetNodeLabel(node, vars_table);
+    const char* label = GetNodeLabel(node, name_table);
     const char* color = GetNodeColor(node);
 
     *buffer_len += snprintf(buffer + *buffer_len, BUFFER_SIZE - (size_t)*buffer_len,
@@ -202,7 +224,7 @@ int GenerateGraph2(Node* node, Variable *vars_table, char* buffer, int* buffer_l
 
     if (node->left)
     {
-        *buffer_len += GenerateGraph2(node->left, vars_table, buffer, buffer_len);
+        *buffer_len += GenerateGraph2(node->left, name_table, buffer, buffer_len);
         *buffer_len += snprintf(buffer + *buffer_len, BUFFER_SIZE - (size_t)*buffer_len,
             "\tnode%p -> node%p [color=\"%s\"; style=bold;  weight=1000;];\n",
             node, node->left, color);
@@ -210,7 +232,7 @@ int GenerateGraph2(Node* node, Variable *vars_table, char* buffer, int* buffer_l
 
     if (node->right)
     {
-        *buffer_len += GenerateGraph2(node->right, vars_table, buffer, buffer_len);
+        *buffer_len += GenerateGraph2(node->right, name_table, buffer, buffer_len);
         *buffer_len += snprintf(buffer + *buffer_len, BUFFER_SIZE - (size_t)*buffer_len,
             "\tnode%p -> node%p [color=\"%s\"; style=bold; weight=1000;];\n",
             node, node->right, color);
@@ -219,7 +241,7 @@ int GenerateGraph2(Node* node, Variable *vars_table, char* buffer, int* buffer_l
     return 0;
 }
 
-CodeError TreeDumpDot2(Node* root, Variable *vars_table)
+CodeError TreeDumpDot2(Node* root, NameTable *name_table)
 {
     static int dump_counter = 0;
     char* buffer = (char*)calloc(BUFFER_SIZE, sizeof(char));
@@ -231,7 +253,7 @@ CodeError TreeDumpDot2(Node* root, Variable *vars_table)
         "\tbgcolor=\"#e6f0c0\";\n"
         "\tnode [fontname=\"Arial\", fontsize=12];\n");
 
-    GenerateGraph2(root, vars_table, buffer, &buffer_len);
+    GenerateGraph2(root, name_table, buffer, &buffer_len);
     buffer_len += snprintf(buffer + buffer_len, BUFFER_SIZE - (size_t)buffer_len, "}\n");
 
 

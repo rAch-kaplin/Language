@@ -3,5 +3,5 @@ build
 bin
 cmake_install.cmake
 logfile.log
-dot
+dot/*.dot
 .vscode

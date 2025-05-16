@@ -5,9 +5,11 @@
 #define OPERATOR_VALUE(op)    ((NodeValue){.optr = (op)})
 #define NUM_VALUE(n)          ((NodeValue){.num  = (n)})
 #define VAR_VALUE(index)      ((NodeValue){.var  = (index)})
+#define FUNC_VALUE(index)     ((NodeValue){.func = (index)})
 
 #define _NUM(n)           NewNode(NUM,       NUM_VALUE(n),     nullptr, nullptr)
 #define _VAR(x)           NewNode(VAR,       VAR_VALUE(x),     nullptr, nullptr)
+#define _FUNC(f)          NewNode(FUNC,      FUNC_VALUE(f),    nullptr, nullptr)
 
 #define _ADD(a, b)        NewNode(OPERATION, OPERATION_VALUE(ADD),  a, b)
 #define _SUB(a, b)        NewNode(OPERATION, OPERATION_VALUE(SUB),  a, b)

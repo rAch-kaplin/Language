@@ -12,25 +12,33 @@
 
 const size_t BUFFER_SIZE = 10;
 
-Node* ReadProgram(const char *file_program, Variable *vars_table)
+Node* ReadProgram(const char *file_program, NameTable *name_table)
 {
     size_t lexeme_count = 0;
-    Lexeme *lexeme_array = InitLexemeArray(file_program, &lexeme_count, vars_table);
+    Lexeme *lexeme_array = InitLexemeArray(file_program, &lexeme_count, name_table);
     if (lexeme_array == nullptr)
     {
         LOG(LOGL_ERROR, "Lexeme_array was not allocated");
         return nullptr;
     }
-    PrintLexemes(lexeme_array, lexeme_count, vars_table);
+
+    // for (size_t i = 0; i < lexeme_count; i++)
+    // {
+    //     if (lexeme_array[i].type == LEX_VAR) {
+    //         printf("VAR lexeme: raw value = %zu\n", lexeme_array[i].value.var);
+    //     }
+    // }
+
+    PrintLexemes(lexeme_array, lexeme_count, name_table);
 
     size_t cur = 0;
     LOG(LOGL_DEBUG, "Start General() func");
-    Node *node_G = General(lexeme_array, &cur, vars_table);
+    Node *node_G = General(lexeme_array, &cur, name_table);
 
-    //FreeVarsTable(vars_table);
     DeinitLexemes(lexeme_array);
 
     return node_G;
+    //return nullptr;
 }
 
 

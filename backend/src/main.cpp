@@ -11,7 +11,7 @@
 #include "../common/colors.h"
 #include "backend.h"
 
-void PrintVariablesTable(Variable *vars_table);
+void PrintVariablesTable(NameTable *name_table);
 
 int main(int argc, const char* argv[]) //TODO not const
 {
@@ -45,23 +45,25 @@ int main(int argc, const char* argv[]) //TODO not const
         return 1;
     }
 
-    Variable vars_table[MAX_VARS] = {};
+    //Variable vars_table[MAX_VARS] = {};
+    NameTable name_table = {};
 
-    Node* root = LoadTreeFromFile(file_tree, vars_table);
+    Node* root = LoadTreeFromFile(file_tree, &name_table);
     if (root == nullptr)
     {
         fprintf(stderr, RED "Error: Failed to load tree from file %s\n" RESET, file_tree);
         return 1;
     }
     FixTree     (root);
-    TreeDumpDot (root, vars_table);
-    TreeDumpDot2(root, vars_table);
+    TreeDumpDot (root, &name_table);
+    TreeDumpDot2(root, &name_table);
 
-    PrintVariablesTable(vars_table);
+    PrintVariablesTable(&name_table);
     _DLOG("Start Assembly\n");
-    AssemblyTree(root, vars_table, file_asm);
+    AssemblyTree(root, &name_table, file_asm);
 
-    FreeVarsTable(vars_table);
+    //FreeVarsTable(vars_table);
+    FreeNameTable(&name_table);
     FreeTree(&root);
 
     clock_t end = clock();
@@ -71,7 +73,7 @@ int main(int argc, const char* argv[]) //TODO not const
     printf(GREEN "End main! ==============================================================================\n\n" RESET);
 }
 
-void PrintVariablesTable(Variable *vars_table)
+void PrintVariablesTable(NameTable *name_table)
 {
     size_t count = 0;
 
@@ -81,12 +83,12 @@ void PrintVariablesTable(Variable *vars_table)
 
     for (size_t i = 0; i < MAX_VARS; i++)
     {
-        if (vars_table[i].name != nullptr)
+        if (name_table->vars_table[i].name != nullptr)
         {
             printf("%-5zu | %-20s | %-10zu\n",
                    i,
-                   vars_table[i].name,
-                   vars_table[i].len_name);
+                   name_table->vars_table[i].name,
+                   name_table->vars_table[i].len_name);
             count++;
         }
     }

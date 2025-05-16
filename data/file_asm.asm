@@ -1,13 +1,21 @@
+
+;===============  SCAN  ============== 
 in
 pop [0]
 push 0
 push [0]
+
+;===============  IF  ============== 
 jne if_skip_block_0:
 push 1
+
+;===============  PRINT  ============== 
 out
 if_skip_block_0:
 push 0
 push [0]
+
+;===============  IF  ============== 
 je if_skip_block_1:
 push 1
 pop [1]
@@ -16,6 +24,8 @@ pop [2]
 while_start_0:
 push [0]
 push [2]
+
+;===============  WHILE  ============== 
 jbe while_end_0:
 push [2]
 push 1
@@ -28,6 +38,8 @@ pop [1]
 jmp while_start_0:
 while_end_0:
 push [1]
+
+;===============  PRINT  ============== 
 out
 if_skip_block_1:
 hlt

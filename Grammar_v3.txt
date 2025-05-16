@@ -24,7 +24,6 @@
 <Term>          ::= <Factor> (("*" | "/") <Factor>)*
 <Factor>        ::= <Number>
                  | <Var>
-                 | <FuncCall>
                  | "(" <Expression> ")"
 
 <ComparisonOp>  ::= "scores_equal"

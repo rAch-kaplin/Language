@@ -17,10 +17,15 @@ static void AddLexeme           (Lexeme *lexeme_array, size_t *lexeme_count, Lex
 static bool GetOperatorType     (Lexeme *lexeme_array, size_t lexeme_count, const char **cur);
 static bool GetOperationType    (Lexeme *lexeme_array, size_t lexeme_count, const char **cur);
 
-Lexeme* StringToLexemes(const char *str, size_t *lexeme_count, Variable *vars_table);
+Lexeme* StringToLexemes(const char *str, size_t *lexeme_count, NameTable *name_table);
 
 /*********************************************************************************************************************************/
 
+/*
+        ======================
+        |   VARS_FUNCTIONS   |
+        ======================
+*/
 void FreeVarsTable(Variable *vars_table)
 {
     for (size_t i = 0; i < MAX_VARS; i++)
@@ -68,12 +73,72 @@ size_t AddVartable(Variable *vars_table, const char* name, size_t len_name)
 
 /*********************************************************************************************************************************/
 
+/*
+        ======================
+        |   FUNC_FUNCTIONS   |
+        ======================
+*/
+
+void FreeFuncTable(Function *func_table)
+{
+    for (size_t i = 0; i < MAX_FUNC; i++)
+    {
+        LOG(LOGL_DEBUG, "free function ---> %s ", func_table[i].name);
+        if (func_table[i].name != nullptr)
+        {
+            free(func_table[i].name);
+            func_table[i].name = nullptr;
+        }
+    }
+}
+
+size_t LookupFunc(Function *func_table, const char* name, size_t len_name)
+{
+    assert(func_table && name);
+
+    size_t cur = 0;
+    while (func_table[cur].name && cur < MAX_FUNC)
+    {
+        if (strncmp(name, func_table[cur].name, len_name) == 0)
+        {
+            break;
+        }
+        cur++;
+    }
+
+    return cur;
+}
+
+size_t AddFuncTable(Function *func_table, const char* name, size_t len_name)
+{
+    assert(func_table && name);
+
+    size_t pos = LookupFunc(func_table, name, len_name);
+    if (func_table[pos].name == nullptr)
+    {
+        func_table[pos].name = strdup(name);
+        func_table[pos].len_name = len_name;
+    }
+
+    return pos;
+}
+
+void FreeNameTable(NameTable *name_table)
+{
+    assert(name_table);
+
+    FreeVarsTable(name_table->vars_table);
+    FreeFuncTable(name_table->func_table);
+}
+
+/*********************************************************************************************************************************/
+
 static void SkipSpaces(const char **buffer)
 {
     while (isspace(**buffer)) (*buffer)++;
 }
 
-Lexeme* StringToLexemes(const char *str, size_t *lexeme_count, Variable *vars_table)
+Lexeme* StringToLexemes(const char *str, size_t *lexeme_count, NameTable *name_table)
 {
     Lexeme *lexeme_array = (Lexeme*)calloc(lexeme_array_size, sizeof(Lexeme));
     if (lexeme_array == nullptr)
@@ -146,30 +211,102 @@ Lexeme* StringToLexemes(const char *str, size_t *lexeme_count, Variable *vars_ta
             (*lexeme_count)++;
             continue;
         }
-        else if (isalpha(*cur))
+//         else if (isalpha(*cur))
+//         {
+//             const char *start = cur;
+//             while (isalpha(*cur) || *cur == '_') cur++;
+//
+//             size_t name_len = (size_t)(cur - start);
+//
+//             char *name = (char*)calloc(name_len + 1, sizeof(char));
+//             if (name == nullptr)
+//             {
+//                 LOG(LOGL_ERROR, "Memory was not allocated");
+//                 return nullptr;
+//             }
+//
+//             if (*cur == '(')
+//             {
+//
+//             }
+//
+//             size_t var_pos = AddVartable(name_table->vars_table, name, name_len);
+//             LOG(LOGL_DEBUG, "VAR: <%s>", name);
+//             lexeme_array[*lexeme_count].type = LEX_VAR;
+//             lexeme_array[*lexeme_count].value.var = var_pos;
+//             (*lexeme_count)++;
+//
+//             free(name);
+//             continue;
+//         }
+
+        else if (isalpha(*cur) || *cur == '_')
         {
             const char *start = cur;
             while (isalpha(*cur) || *cur == '_') cur++;
 
             size_t name_len = (size_t)(cur - start);
-
             char *name = (char*)calloc(name_len + 1, sizeof(char));
             if (name == nullptr)
             {
                 LOG(LOGL_ERROR, "Memory was not allocated");
+                FreeNameTable(name_table);
+                free(lexeme_array);
                 return nullptr;
             }
             strncpy(name, start, name_len);
             name[name_len] = '\0';
 
-            size_t var_pos = AddVartable(vars_table, name, name_len);
-            LOG(LOGL_DEBUG, "VAR: <%s>", name);
-            lexeme_array[*lexeme_count].type = LEX_VAR;
-            lexeme_array[*lexeme_count].value.var = var_pos;
-            (*lexeme_count)++;
+            SkipSpaces(&cur);
+            bool is_func_decl = (strncmp(name, "play", 4) == 0 && name_len == 4);
 
-            free(name);
+            bool is_func_call = (*cur == '(' && !is_func_decl);
+
+            if (is_func_decl)
+            {
+                AddLexeme(lexeme_array, lexeme_count, LEX_FUNC_DEF, 0);
+                free(name);
+
+                SkipSpaces(&cur);
+
+                start = cur;
+                while (isalpha(*cur) || *cur == '_') cur++;
+                name_len = (size_t)(cur - start);
+                name = (char*)calloc(name_len + 1, sizeof(char));
+                strncpy(name, start, name_len);
+                name[name_len] = '\0';
+
+                size_t func_pos = AddFuncTable(name_table->func_table, name, name_len);
+                lexeme_array[*lexeme_count].type = LEX_FUNC;
+                lexeme_array[*lexeme_count].value.func = func_pos;
+                (*lexeme_count)++;
+                free(name);
+            }
+            else if (is_func_call)
+            {
+                size_t func_pos = AddFuncTable(name_table->func_table, name, name_len);
+                lexeme_array[*lexeme_count].type = LEX_FUNC;
+                lexeme_array[*lexeme_count].value.func = func_pos;
+                (*lexeme_count)++;
+                free(name);
+            }
+            else
+            {
+                size_t var_pos = AddVartable(name_table->vars_table, name, name_len);
+                LOG(LOGL_DEBUG, "VAR: <%s>", name);
+                lexeme_array[*lexeme_count].type = LEX_VAR;
+                lexeme_array[*lexeme_count].value.var = var_pos;
+                (*lexeme_count)++;
+                free(name);
+            }
             continue;
+        }
+        else
+        {
+            LOG(LOGL_ERROR, "Unexpected character: %c", *cur);
+            FreeNameTable(name_table);
+            free(lexeme_array);
+            return nullptr;
         }
     }
     return lexeme_array;
@@ -232,9 +369,10 @@ static bool GetOperatorType(Lexeme *lexeme_array, size_t lexeme_count, const cha
     return false;
 }
 
-void PrintLexemes(const Lexeme* lexeme_array, size_t lexeme_count, Variable *vars_table)
+void PrintLexemes(const Lexeme* lexeme_array, size_t lexeme_count, NameTable *name_table)
 {
     assert(lexeme_array);
+    assert(name_table);
 
     printf(BLUB " //***********************Lexemes***********************// " RESET "\n\n");
 
@@ -249,8 +387,22 @@ void PrintLexemes(const Lexeme* lexeme_array, size_t lexeme_count, Variable *var
                 printf(CYAN "NUM        " RESET ": " BLUE "%lf" RESET "\n", lex->value.num);
                 break;
 
+            // case LEX_VAR:
+            //     printf(GREEN "VAR        " RESET ": index " GREEN "%zu:<%s>" RESET "\n", lex->value.var, vars_table[lex->value.var].name);
+            //     break;
+
             case LEX_VAR:
-                printf(GREEN "VAR        " RESET ": index " GREEN "%zu:<%s>" RESET "\n", lex->value.var, vars_table[lex->value.var].name);
+                printf(GREEN "VAR        " RESET ": index " GREEN "%zu:<%s>" RESET "\n",
+                       lex->value.var, name_table->vars_table[lex->value.var].name);
+                break;
+
+            case LEX_FUNC:
+                printf(MAGENTA "FUNCNAME   " RESET ": index " MAGENTA "%zu:<%s>" RESET "\n",
+                       lex->value.func, name_table->func_table[lex->value.func].name);
+                break;
+
+            case LEX_FUNC_DEF:
+                printf(MAGENTA "FUNC DEF       " RESET ": \"" MAGENTA "play" RESET "\"\n");
                 break;
 
             case LEX_OPERATION:
@@ -308,7 +460,7 @@ void PrintLexemes(const Lexeme* lexeme_array, size_t lexeme_count, Variable *var
     printf("\n");
 }
 
-Lexeme* InitLexemeArray(const char* file_expr, size_t *lexeme_count, Variable *vars_table)
+Lexeme* InitLexemeArray(const char* file_expr, size_t *lexeme_count, NameTable *name_func)
 {
     assert(file_expr);
 
@@ -321,7 +473,7 @@ Lexeme* InitLexemeArray(const char* file_expr, size_t *lexeme_count, Variable *v
     }
 
     LOG(LOGL_DEBUG, "Start StringToLexemes()");
-    Lexeme *lexeme_array = StringToLexemes(expr_buffer, lexeme_count, vars_table);
+    Lexeme *lexeme_array = StringToLexemes(expr_buffer, lexeme_count, name_func);
     free(expr_buffer);
 
     LOG(LOGL_DEBUG, "Init Lexeme Array SUCCESS");

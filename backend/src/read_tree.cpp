@@ -11,10 +11,10 @@
 
 const size_t MAX_LEN_BUF = 4856;
 
-static CodeError ParseNode                  (Node** node, Variable *vars_table, char** buffer);
-static CodeError HandleOperatorNode         (Node** node, Variable *vars_table, char** buffer);
-static CodeError HandleOperationNode        (Node** node, Variable *vars_table, char** buffer);
-static CodeError HandleVarNode              (Node** node, Variable *vars_table, char** buffer);
+static CodeError ParseNode                  (Node** node, NameTable *name_table, char** buffer);
+static CodeError HandleOperatorNode         (Node** node, NameTable *name_table, char** buffer);
+static CodeError HandleOperationNode        (Node** node, NameTable *name_table, char** buffer);
+static CodeError HandleVarNode              (Node** node, NameTable *name_table, char** buffer);
 static CodeError HandleNumNode              (Node** node, char** buffer);
 
 static void      SkipSpace              (char** buffer);
@@ -41,7 +41,7 @@ void FixTree(Node* node)
     if (node->right) FixTree(node->right);
 }
 
-Node* LoadTreeFromFile(const char* filename, Variable *vars_table)
+Node* LoadTreeFromFile(const char* filename, NameTable *name_table)
 {
     size_t file_size = 0;
     char* buffer = ReadProgramToBuffer(filename, &file_size);
@@ -53,7 +53,7 @@ Node* LoadTreeFromFile(const char* filename, Variable *vars_table)
 
     Node* root = nullptr;
     char* buffer_ptr = buffer;
-    CodeError err = ParseNode(&root, vars_table, &buffer_ptr);
+    CodeError err = ParseNode(&root, name_table, &buffer_ptr);
 
     free(buffer);
 
@@ -66,7 +66,7 @@ Node* LoadTreeFromFile(const char* filename, Variable *vars_table)
     return root;
 }
 
-static CodeError ParseNode(Node** node, Variable *vars_table, char** buffer)
+static CodeError ParseNode(Node** node, NameTable *name_table, char** buffer)
 {
     SkipSpace(buffer);
 
@@ -109,11 +109,11 @@ static CodeError ParseNode(Node** node, Variable *vars_table, char** buffer)
     switch (type)
     {
         case OPERATOR:
-            return HandleOperatorNode   (node, vars_table, buffer);
+            return HandleOperatorNode   (node, name_table, buffer);
         case OPERATION:
-            return HandleOperationNode  (node, vars_table, buffer);
+            return HandleOperationNode  (node, name_table, buffer);
         case VAR:
-            return HandleVarNode        (node, vars_table, buffer);
+            return HandleVarNode        (node, name_table, buffer);
         case NUM:
             return HandleNumNode        (node, buffer);
         default:
@@ -122,7 +122,7 @@ static CodeError ParseNode(Node** node, Variable *vars_table, char** buffer)
     }
 }
 
-static CodeError HandleOperatorNode(Node** node, Variable *vars_table, char** buffer)
+static CodeError HandleOperatorNode(Node** node, NameTable *name_table, char** buffer)
 {
     char op_str[MAX_LEN_BUF] = {};
     if (sscanf(*buffer, "%[^\"]", op_str) != 1)
@@ -148,14 +148,14 @@ static CodeError HandleOperatorNode(Node** node, Variable *vars_table, char** bu
 
     if (**buffer == '{')
     {
-        CodeError err = ParseNode(&((*node)->left), vars_table, buffer);
+        CodeError err = ParseNode(&((*node)->left), name_table, buffer);
         if (err != OK) return err;
 
         SkipSpace(buffer);
 
         if (**buffer == '{')
         {
-            err = ParseNode(&((*node)->right), vars_table, buffer);
+            err = ParseNode(&((*node)->right), name_table, buffer);
             if (err != OK) return err;
         }
     }
@@ -172,7 +172,7 @@ static CodeError HandleOperatorNode(Node** node, Variable *vars_table, char** bu
     return OK;
 }
 
-static CodeError HandleOperationNode(Node** node, Variable *vars_table, char** buffer)
+static CodeError HandleOperationNode(Node** node, NameTable *name_table, char** buffer)
 {
     char oper_str[MAX_LEN_BUF] = {};
     if (sscanf(*buffer, "%[^\"]", oper_str) != 1)
@@ -198,14 +198,14 @@ static CodeError HandleOperationNode(Node** node, Variable *vars_table, char** b
 
     if (**buffer == '{')
     {
-        CodeError err = ParseNode(&((*node)->left), vars_table, buffer);
+        CodeError err = ParseNode(&((*node)->left), name_table, buffer);
         if (err != OK) return err;
 
         SkipSpace(buffer);
 
         if (**buffer == '{')
         {
-            err = ParseNode(&((*node)->right), vars_table, buffer);
+            err = ParseNode(&((*node)->right), name_table, buffer);
             if (err != OK) return err;
         }
     }
@@ -222,7 +222,7 @@ static CodeError HandleOperationNode(Node** node, Variable *vars_table, char** b
     return OK;
 }
 
-static CodeError HandleVarNode(Node** node, Variable *vars_table, char** buffer)
+static CodeError HandleVarNode(Node** node, NameTable *name_table, char** buffer)
 {
     char var_str[MAX_LEN_BUF] = {};
     if (sscanf(*buffer, "%[^\"]", var_str) != 1)
@@ -239,7 +239,7 @@ static CodeError HandleVarNode(Node** node, Variable *vars_table, char** buffer)
     }
     (*buffer)++;
 
-    size_t var_pos = AddVartable(vars_table, var_str, strlen(var_str));
+    size_t var_pos = AddVartable(name_table->vars_table, var_str, strlen(var_str));
 
     NodeValue value = {};
     value.var = var_pos;
@@ -303,6 +303,7 @@ static NodeType DetectType(const char* str)
     if (strcmp(str, "OPERATION") == 0)  return OPERATION;
     if (strcmp(str, "VAR")       == 0)  return VAR;
     if (strcmp(str, "NUM")       == 0)  return NUM;
+    if (strcmp(str, "FUNC")      == 0)  return FUNC;
 
     LOG(LOGL_ERROR, "Unknown node type: %s", str);
     return NUM; //FIXME
@@ -315,6 +316,9 @@ static Operator GetOperatorFromStr(const char* str) //FIXME
     if (strcmp(str, "while") == 0)     return OP_WHILE;
     if (strcmp(str, "print") == 0)     return OP_PRINT;
     if (strcmp(str, "input") == 0)     return OP_SCAN;
+    if (strcmp(str, "ret")   == 0)     return OP_RET;
+    if (strcmp(str, "call")  == 0)     return OP_FUNC_CALL;
+    if (strcmp(str, "play")  == 0)     return OP_FUNC_DEF;
     if (strcmp(str, "=")     == 0)     return OP_ASSIGN;
 
     LOG(LOGL_ERROR, "Unknown operator: %s\n", str);
