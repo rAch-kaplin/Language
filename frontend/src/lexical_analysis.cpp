@@ -10,7 +10,6 @@
 /*********************************************************************************************************************************/
 
 const size_t lexeme_array_size = 1000;
-//const size_t MAX_VARS = 100;
 
 static void SkipSpaces          (const char **buffer);
 static bool IsNum               (const char *cur);
@@ -251,7 +250,7 @@ void PrintLexemes(const Lexeme* lexeme_array, size_t lexeme_count, Variable *var
                 break;
 
             case LEX_VAR:
-                printf(GREEN "VAR        " RESET ": index " GREEN "%zu" RESET "\n", lex->value.var);
+                printf(GREEN "VAR        " RESET ": index " GREEN "%zu:<%s>" RESET "\n", lex->value.var, vars_table[lex->value.var].name);
                 break;
 
             case LEX_OPERATION:

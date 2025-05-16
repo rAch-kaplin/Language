@@ -52,7 +52,7 @@ int main(int argc, const char* argv[]) //TODO not const
         printf(RED "Program reading ERROR\n" RESET);
 
         FreeTree(&prog);
-        //FreeVarsTable();
+        FreeVarsTable(vars_table);
         LoggerDeinit();
 
         return 1;
@@ -63,7 +63,7 @@ int main(int argc, const char* argv[]) //TODO not const
     SaveTreeToFile(file_tree, prog, vars_table);
 
     FreeTree(&prog);
-    //FreeVarsTable();
+    FreeVarsTable(vars_table);
     LoggerDeinit();
 
     clock_t end = clock();

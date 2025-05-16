@@ -3,6 +3,8 @@
 
 #include "common.h"
 
+const size_t MAX_VARS = 100;
+
 /**************************ENUMS**************************************************************************/
 
 typedef enum NodeType
@@ -139,7 +141,6 @@ void FreeTree(Node** node);
 
 size_t LookupVar  (Variable *vars_table, const char* name, size_t len_name);
 size_t AddVartable(Variable *vars_table, const char* name, size_t len_name);
-//Variable* GetVarsTable();
 void FreeVarsTable(Variable *vars_table);
 
 void FixParents (Node* node);

@@ -11,13 +11,13 @@ static Node* ParseBlock         (Lexeme* lexemes, size_t* pos, Variable *vars_ta
 static Node* GetStatement       (Lexeme* lexemes, size_t* pos, Variable *vars_table);
 static Node* GetIf              (Lexeme* lexemes, size_t* pos, Variable *vars_table);
 static Node* GetWhile           (Lexeme* lexemes, size_t* pos, Variable *vars_table);
-static Node* GetPrint           (Lexeme* lexemes, size_t* pos, Variable *vars_table);
-static Node* GetScan            (Lexeme* lexemes, size_t* pos, Variable *vars_table);
 static Node* GetAssignment      (Lexeme* lexemes, size_t* pos, Variable *vars_table);
 static Node* GetCondition       (Lexeme* lexemes, size_t* pos, Variable *vars_table);
 static Node* GetExpression      (Lexeme* lexemes, size_t* pos, Variable *vars_table);
 static Node* GetTerm            (Lexeme* lexemes, size_t* pos, Variable *vars_table);
 static Node* GetFactor          (Lexeme* lexemes, size_t* pos, Variable *vars_table);
+static Node* GetPrint           (Lexeme* lexemes, size_t* pos, Variable *vars_table);
+static Node* GetScan            (Lexeme* lexemes, size_t* pos);
 
 static void SyntaxERROR(const char* message, size_t pos, LexemeType expected, LexemeType found);
 
@@ -109,7 +109,7 @@ Node* GetStatement(Lexeme* lexemes, size_t* pos, Variable *vars_table)
                 break;
 
             case OP_SCAN:
-                node = GetScan(lexemes, pos, vars_table);
+                node = GetScan(lexemes, pos);
                 if (lexemes[*pos].type != LEX_SEMICOLON)
                 {
                     SyntaxERROR("Expected ';' after scan", *pos, LEX_SEMICOLON, lexemes[*pos].type);
@@ -283,7 +283,7 @@ Node* GetPrint(Lexeme* lexemes, size_t* pos, Variable *vars_table)
     return _PRINT(expr);
 }
 
-Node* GetScan(Lexeme* lexemes, size_t* pos, Variable *vars_table)
+Node* GetScan(Lexeme* lexemes, size_t* pos)
 {
     assert(lexemes);
     assert(pos);

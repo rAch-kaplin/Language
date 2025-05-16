@@ -1,6 +1,0 @@
-{
-    "files.associations": {
-        "*.log": "Log",
-        "type_traits": "cpp"
-    }
-}

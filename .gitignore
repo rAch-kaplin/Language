@@ -4,3 +4,4 @@ bin
 cmake_install.cmake
 logfile.log
 dot
+.vscode

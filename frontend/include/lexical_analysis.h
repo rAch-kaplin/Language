@@ -3,8 +3,6 @@
 
 #include "tree_func.h"
 
-const size_t MAX_VARS = 100;
-
 typedef enum LexemeType
 {
     LEX_NUM,

@@ -27,7 +27,7 @@ Node* ReadProgram(const char *file_program, Variable *vars_table)
     LOG(LOGL_DEBUG, "Start General() func");
     Node *node_G = General(lexeme_array, &cur, vars_table);
 
-    FreeVarsTable(vars_table);
+    //FreeVarsTable(vars_table);
     DeinitLexemes(lexeme_array);
 
     return node_G;

@@ -11,10 +11,10 @@
 
 const size_t MAX_LEN_BUF = 4856;
 
-static CodeError ParseNode                  (Node** node, char** buffer);
-static CodeError HandleOperatorNode         (Node** node, char** buffer);
-static CodeError HandleOperationNode        (Node** node, char** buffer);
-static CodeError HandleVarNode              (Node** node, char** buffer);
+static CodeError ParseNode                  (Node** node, Variable *vars_table, char** buffer);
+static CodeError HandleOperatorNode         (Node** node, Variable *vars_table, char** buffer);
+static CodeError HandleOperationNode        (Node** node, Variable *vars_table, char** buffer);
+static CodeError HandleVarNode              (Node** node, Variable *vars_table, char** buffer);
 static CodeError HandleNumNode              (Node** node, char** buffer);
 
 static void      SkipSpace              (char** buffer);
@@ -41,7 +41,7 @@ void FixTree(Node* node)
     if (node->right) FixTree(node->right);
 }
 
-Node* LoadTreeFromFile(const char* filename)
+Node* LoadTreeFromFile(const char* filename, Variable *vars_table)
 {
     size_t file_size = 0;
     char* buffer = ReadProgramToBuffer(filename, &file_size);
@@ -53,7 +53,7 @@ Node* LoadTreeFromFile(const char* filename)
 
     Node* root = nullptr;
     char* buffer_ptr = buffer;
-    CodeError err = ParseNode(&root, &buffer_ptr);
+    CodeError err = ParseNode(&root, vars_table, &buffer_ptr);
 
     free(buffer);
 
@@ -66,7 +66,7 @@ Node* LoadTreeFromFile(const char* filename)
     return root;
 }
 
-static CodeError ParseNode(Node** node, char** buffer)
+static CodeError ParseNode(Node** node, Variable *vars_table, char** buffer)
 {
     SkipSpace(buffer);
 
@@ -109,20 +109,20 @@ static CodeError ParseNode(Node** node, char** buffer)
     switch (type)
     {
         case OPERATOR:
-            return HandleOperatorNode(node, buffer);
+            return HandleOperatorNode   (node, vars_table, buffer);
         case OPERATION:
-            return HandleOperationNode(node, buffer);
+            return HandleOperationNode  (node, vars_table, buffer);
         case VAR:
-            return HandleVarNode(node, buffer);
+            return HandleVarNode        (node, vars_table, buffer);
         case NUM:
-            return HandleNumNode(node, buffer);
+            return HandleNumNode        (node, buffer);
         default:
             LOG(LOGL_ERROR, "Unknown node type: %s\n", type_str);
             return INVALID_FORMAT;
     }
 }
 
-static CodeError HandleOperatorNode(Node** node, char** buffer)
+static CodeError HandleOperatorNode(Node** node, Variable *vars_table, char** buffer)
 {
     char op_str[MAX_LEN_BUF] = {};
     if (sscanf(*buffer, "%[^\"]", op_str) != 1)
@@ -148,14 +148,14 @@ static CodeError HandleOperatorNode(Node** node, char** buffer)
 
     if (**buffer == '{')
     {
-        CodeError err = ParseNode(&((*node)->left), buffer);
+        CodeError err = ParseNode(&((*node)->left), vars_table, buffer);
         if (err != OK) return err;
 
         SkipSpace(buffer);
 
         if (**buffer == '{')
         {
-            err = ParseNode(&((*node)->right), buffer);
+            err = ParseNode(&((*node)->right), vars_table, buffer);
             if (err != OK) return err;
         }
     }
@@ -172,7 +172,7 @@ static CodeError HandleOperatorNode(Node** node, char** buffer)
     return OK;
 }
 
-static CodeError HandleOperationNode(Node** node, char** buffer)
+static CodeError HandleOperationNode(Node** node, Variable *vars_table, char** buffer)
 {
     char oper_str[MAX_LEN_BUF] = {};
     if (sscanf(*buffer, "%[^\"]", oper_str) != 1)
@@ -198,14 +198,14 @@ static CodeError HandleOperationNode(Node** node, char** buffer)
 
     if (**buffer == '{')
     {
-        CodeError err = ParseNode(&((*node)->left), buffer);
+        CodeError err = ParseNode(&((*node)->left), vars_table, buffer);
         if (err != OK) return err;
 
         SkipSpace(buffer);
 
         if (**buffer == '{')
         {
-            err = ParseNode(&((*node)->right), buffer);
+            err = ParseNode(&((*node)->right), vars_table, buffer);
             if (err != OK) return err;
         }
     }
@@ -222,7 +222,7 @@ static CodeError HandleOperationNode(Node** node, char** buffer)
     return OK;
 }
 
-static CodeError HandleVarNode(Node** node, char** buffer)
+static CodeError HandleVarNode(Node** node, Variable *vars_table, char** buffer)
 {
     char var_str[MAX_LEN_BUF] = {};
     if (sscanf(*buffer, "%[^\"]", var_str) != 1)
@@ -239,7 +239,6 @@ static CodeError HandleVarNode(Node** node, char** buffer)
     }
     (*buffer)++;
 
-    Variable* vars_table = GetVarsTable();
     size_t var_pos = AddVartable(vars_table, var_str, strlen(var_str));
 
     NodeValue value = {};

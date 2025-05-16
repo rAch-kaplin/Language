@@ -11,8 +11,7 @@
 #include "../common/colors.h"
 #include "backend.h"
 
-const size_t MAX_VARS = 10;
-void PrintVariablesTable();
+void PrintVariablesTable(Variable *vars_table);
 
 int main(int argc, const char* argv[]) //TODO not const
 {
@@ -46,22 +45,24 @@ int main(int argc, const char* argv[]) //TODO not const
         return 1;
     }
 
-    Node* root = LoadTreeFromFile(file_tree);
+    Variable vars_table[MAX_VARS] = {};
+
+    Node* root = LoadTreeFromFile(file_tree, vars_table);
     if (root == nullptr)
     {
         fprintf(stderr, RED "Error: Failed to load tree from file %s\n" RESET, file_tree);
         return 1;
     }
     FixTree     (root);
-    TreeDumpDot (root);
-    TreeDumpDot2(root);
+    TreeDumpDot (root, vars_table);
+    TreeDumpDot2(root, vars_table);
 
-    PrintVariablesTable();
+    PrintVariablesTable(vars_table);
     _DLOG("Start Assembly\n");
-    AssemblyTree(root, file_asm);
+    AssemblyTree(root, vars_table, file_asm);
 
+    FreeVarsTable(vars_table);
     FreeTree(&root);
-
 
     clock_t end = clock();
     double time_spent = (double)(end - start) / CLOCKS_PER_SEC;
@@ -70,9 +71,8 @@ int main(int argc, const char* argv[]) //TODO not const
     printf(GREEN "End main! ==============================================================================\n\n" RESET);
 }
 
-void PrintVariablesTable()
+void PrintVariablesTable(Variable *vars_table)
 {
-    Variable* vars_table = GetVarsTable();
     size_t count = 0;
 
     printf("\n======== VARIABLES TABLE (MAX: %zu) =======\n", MAX_VARS);
