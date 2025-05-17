@@ -37,22 +37,20 @@ Each module has its own responsibility and cooperates to process, compile, and e
 
 | Operation                | Keyword         | Translation            |
 |--------------------------|------------------|-------------------------|
-| `if`                     | `block`          | blocking                |
-| `else`                   | `dig`            | digging                 |
-| `while`                  | `rally`          | rally                   |
-| `break`                  | `timeout`        | timeout                 |
-| `continue`               | `rotate`         | rotation                |
-| `printf`                 | `serve`          | serve                   |
-| `scanf`                  | `receive`        | receive                 |
+| `if`                     | `block`          |	блокировка              |
+| `while`                  | `rally`          | розыгрыш                |
+| `return`                 | `ace`            | ace                     |
+| `printf`                 | `serve`          | подача                  |
+| `scanf`                  | `receive`        | приём                   |
 
 | Comparison Operator      | Keyword         | Translation            |
 |--------------------------|------------------|-------------------------|
-| `==`                     | `scores_equal`   | scores are equal        |
-| `!=`                     | `scores_diff`    | scores are different    |
-| `>`                      | `leading`        | leading                 |
-| `<`                      | `losing`         | falling behind          |
-| `>=`                     | `not_behind`     | not behind              |
-| `<=`                     | `not_losing`     | not losing              |
+| `==`                     | `scores_equal`   | счёт сравнялся          |
+| `!=`                     | `scores_diff`    | счёт разный             |
+| `>`                      | `leading`        | впереди                 |
+| `<`                      | `losing`         | отстаём                 |
+| `>=`                     | `not_behind`     | 	не позади             |
+| `<=`                     | `not_losing`     | не проигрываем          |
 
 ## Tree Example
 
@@ -62,8 +60,8 @@ Each module has its own responsibility and cooperates to process, compile, and e
 
 To add a new program written in this language, first check the syntax rules, write your code in the `data` directory to a text file and run it.
 
-### Example Program: **EquationSolver**
-
+ Example Program: **EquationSolver**
+ 
 <details><summary>SolveSquare</summary>
 
 ```c
@@ -129,7 +127,7 @@ play SolveQuadSq()
 ```
 </details>
 
-Example Program: factorial
+Example Program: **Factorial**
 <details><summary>Factorial</summary>
 
 ```c
