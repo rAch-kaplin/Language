@@ -1,8 +1,20 @@
+receive(x);
 
-
-play volleyball()
+block (x scores_equal 0)
 {
-    receive(x);
-    c = sqrt(x);
-    serve(c);
+    serve(1);
+}
+
+block (x scores_diff 0)
+{
+    r = 1;
+    c = 1;
+
+    rally (c not_losing x)
+    {
+        c = c + 1;
+        r = r * c;
+    }
+
+    serve(r);
 }

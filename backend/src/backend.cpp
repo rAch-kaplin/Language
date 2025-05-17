@@ -28,6 +28,7 @@ static void         TranslateSqrt           (const Node *node, NameTable *name_t
 
 static void         TranslateFuncDef        (const Node *node, NameTable *name_table, AsmFile *asm_file);
 static void         TranslateFuncCall       (const Node *node, NameTable *name_table, AsmFile *asm_file);
+static void         TranslateRet            (const Node *node, NameTable *name_table, AsmFile *asm_file);
 
 void FreeAsmFile(AsmFile* asm_file);
 //TODO add logs
@@ -61,7 +62,7 @@ CodeError AssemblyTree(const Node *root, NameTable *name_table, const char *file
     TranslateOperator(root, name_table, &asm_file);
 
     FILE *fp = fopen(file_asm, "wt");
-    fprintf(fp, "%s\n", asm_file.asm_buffer);
+    fprintf(fp, "%s\n", asm_file.asm_buffer); //TODO write
 
     FreeAsmFile(&asm_file);
 
@@ -127,6 +128,12 @@ CodeError TranslateOperator(const Node *node, NameTable *name_table, AsmFile *as
                 TranslateFuncCall(node, name_table, asm_file);
                 break;
             }
+            case OP_RET:
+            {
+                _DLOG("case OP_RET");
+                TranslateRet(node, name_table, asm_file);
+                break;
+            }
 
             default:
                 break; //FIXME
@@ -143,10 +150,10 @@ void TranslateIf(const Node *node, NameTable *name_table, AsmFile *asm_file)
 
     size_t if_id = asm_file->endif++;
 
+    _WRITE_ASM(asm_file, "\n;===============  IF  ============== \n");
+
     TranslateExpression(node->left->right, name_table, asm_file);
     TranslateExpression(node->left->left,  name_table, asm_file);
-
-    _WRITE_ASM(asm_file, "\n;===============  IF  ============== \n");
 
     switch (node->left->value.oper)
     {
@@ -245,8 +252,6 @@ void TranslateSqrt(const Node *node, NameTable *name_table, AsmFile *asm_file)
         fprintf(stderr, "ERROR: Variable node expected for POP\n");
         return;
     }
-
-    //_WRITE_ASM(asm_file, "pop [%d]\n", (int)node->left->value.var);
 }
 
 void TranslatePrint(const Node *node, NameTable *name_table, AsmFile *asm_file)
@@ -255,8 +260,8 @@ void TranslatePrint(const Node *node, NameTable *name_table, AsmFile *asm_file)
     assert(asm_file);
 
     _DLOG("TranslatePrint");
-    TranslateExpression(node->left, name_table, asm_file);
     _WRITE_ASM(asm_file, "\n;===============  PRINT  ============== \n");
+    TranslateExpression(node->left, name_table, asm_file);
     _WRITE_ASM(asm_file, "out\n");
 }
 
@@ -350,6 +355,7 @@ void TranslateAssign(const Node *node, NameTable *name_table, AsmFile *asm_file)
     assert(asm_file);
 
     _DLOG("TranslateAssign");
+    _WRITE_ASM(asm_file, "\n;===============  ASSIGN  ============== \n");
     if (node->right->value.optr == OP_SQRT)
     {
         TranslateSqrt(node->right, name_table, asm_file);
@@ -359,7 +365,7 @@ void TranslateAssign(const Node *node, NameTable *name_table, AsmFile *asm_file)
         TranslateExpression(node->right, name_table, asm_file);
     }
 
-    TranslatePopVar    (node->left, asm_file, name_table);
+    TranslatePopVar(node->left, asm_file, name_table);
 }
 
 void TranslateFuncDef(const Node *node, NameTable *name_table, AsmFile *asm_file)
@@ -374,7 +380,8 @@ void TranslateFuncDef(const Node *node, NameTable *name_table, AsmFile *asm_file
     _WRITE_ASM(asm_file, "%s:\n", func_name);
 
     TranslateOperator(node->right, name_table, asm_file);
-    _WRITE_ASM(asm_file, "ret \n");
+
+    //_WRITE_ASM(asm_file, "ret \n");
 }
 
 void TranslateFuncCall(const Node *node, NameTable *name_table, AsmFile *asm_file)
@@ -393,7 +400,7 @@ void TranslateFuncCall(const Node *node, NameTable *name_table, AsmFile *asm_fil
     _WRITE_ASM(asm_file, "call %s:\n", func_name);
 }
 
-void TranslateRet(const Node *node, AsmFile *asm_file)
+void TranslateRet(const Node *node, NameTable *name_table, AsmFile *asm_file)
 {
     assert(node);
     assert(asm_file);
@@ -401,10 +408,10 @@ void TranslateRet(const Node *node, AsmFile *asm_file)
     _DLOG("TranslateRet");
     _WRITE_ASM(asm_file, "\n;=== RETURN ===\n");
 
-    if (node->left)
-    {
-        TranslateExpression(node->left, nullptr, asm_file);
-    }
+    // if (node->left)
+    // {
+    //     TranslateExpression(node->left, nullptr, asm_file);
+    // }
 
     _WRITE_ASM(asm_file, "ret\n");
 }

@@ -1,0 +1,40 @@
+
+play volleyball()
+{
+    receive(a);
+    receive(b);
+    receive(c);
+
+    block(a scores_equal 0)
+    {
+        y = (-1 * c) / b;
+        serve(y);
+    }
+
+    discr = b * b - 4 * a * c;
+    c = sqrt(discr);
+    serve(c);
+
+    block (discr losing 0)
+    {
+        serve(999);
+    }
+
+    block (discr scores_equal 0)
+    {
+        x = (-1 * b) / (2 * a);
+        serve(x);
+    }
+
+    block (discr leading 0)
+    {
+        x  = (-1 * b - c) / (2 * a);
+        xx = (-1 * b + c) / (2 * a);
+
+        serve(x);
+        serve(xx);
+    }
+
+    ace 0;
+}
+
