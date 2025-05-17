@@ -28,7 +28,7 @@ static void WriteTree(FILE* file, const Node* node, int indent, NameTable *name_
             return;
         case FUNC:
             fprintf(file, "{FUNC:\"%s\"}\n", name_table->func_table[node->value.func].name);
-            break;
+            return;
         case NUM:
             fprintf(file, "{NUM:\"%lg\"}\n", node->value.num);
             return;
@@ -64,6 +64,7 @@ static const char* GetOperatorStr(Operator optr)
         case OP_FUNC_CALL: return "call";
         case OP_FUNC_DEF:  return "play";
         case OP_RET:       return "ret";
+        case OP_SQRT:      return "sqrt";
         default:           return "unknown";
     }
 }

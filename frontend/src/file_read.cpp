@@ -22,13 +22,6 @@ Node* ReadProgram(const char *file_program, NameTable *name_table)
         return nullptr;
     }
 
-    // for (size_t i = 0; i < lexeme_count; i++)
-    // {
-    //     if (lexeme_array[i].type == LEX_VAR) {
-    //         printf("VAR lexeme: raw value = %zu\n", lexeme_array[i].value.var);
-    //     }
-    // }
-
     PrintLexemes(lexeme_array, lexeme_count, name_table);
 
     size_t cur = 0;
@@ -38,7 +31,6 @@ Node* ReadProgram(const char *file_program, NameTable *name_table)
     DeinitLexemes(lexeme_array);
 
     return node_G;
-    //return nullptr;
 }
 
 

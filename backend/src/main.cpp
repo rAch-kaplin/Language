@@ -46,7 +46,7 @@ int main(int argc, const char* argv[]) //TODO not const
     }
 
     //Variable vars_table[MAX_VARS] = {};
-    NameTable name_table = {nullptr, nullptr, 10};
+    NameTable name_table = {};
 
     Node* root = LoadTreeFromFile(file_tree, &name_table);
     if (root == nullptr)
@@ -62,7 +62,6 @@ int main(int argc, const char* argv[]) //TODO not const
     _DLOG("Start Assembly\n");
     AssemblyTree(root, &name_table, file_asm);
 
-    //FreeVarsTable(vars_table);
     FreeNameTable(&name_table);
     FreeTree(&root);
 

@@ -28,5 +28,6 @@
 #define _WHILE(a, b)      NewNode(OPERATOR,  OPERATOR_VALUE(OP_WHILE),  a, b)
 #define _PRINT(a)         NewNode(OPERATOR,  OPERATOR_VALUE(OP_PRINT),  a, nullptr)
 #define _SCAN(a)          NewNode(OPERATOR,  OPERATOR_VALUE(OP_SCAN),   a, nullptr)
+#define _SQRT(a)          NewNode(OPERATOR,  OPERATOR_VALUE(OP_SQRT),   a, nullptr)
 
 #endif //_HDSL

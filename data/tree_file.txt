@@ -1,66 +1,20 @@
 {OPERATOR:";"
-	{OPERATOR:"input"
-		{VAR:"x"}
-	}
-	{OPERATOR:";"
-		{OPERATOR:"if"
-			{OPERATION:"=="
+	{OPERATOR:"play"
+		{FUNC:"volleyball"}
+		{OPERATOR:";"
+			{OPERATOR:"input"
 				{VAR:"x"}
-				{NUM:"0"}
 			}
 			{OPERATOR:";"
-				{OPERATOR:"print"
-					{NUM:"1"}
-				}
-			}
-		}
-		{OPERATOR:";"
-			{OPERATOR:"if"
-				{OPERATION:"!="
-					{VAR:"x"}
-					{NUM:"0"}
+				{OPERATOR:"="
+					{VAR:"c"}
+					{OPERATOR:"sqrt"
+						{VAR:"x"}
+					}
 				}
 				{OPERATOR:";"
-					{OPERATOR:"="
-						{VAR:"r"}
-						{NUM:"1"}
-					}
-					{OPERATOR:";"
-						{OPERATOR:"="
-							{VAR:"c"}
-							{NUM:"1"}
-						}
-						{OPERATOR:";"
-							{OPERATOR:"while"
-								{OPERATION:"<="
-									{VAR:"c"}
-									{VAR:"x"}
-								}
-								{OPERATOR:";"
-									{OPERATOR:"="
-										{VAR:"c"}
-										{OPERATION:"+"
-											{VAR:"c"}
-											{NUM:"1"}
-										}
-									}
-									{OPERATOR:";"
-										{OPERATOR:"="
-											{VAR:"r"}
-											{OPERATION:"*"
-												{VAR:"r"}
-												{VAR:"c"}
-											}
-										}
-									}
-								}
-							}
-							{OPERATOR:";"
-								{OPERATOR:"print"
-									{VAR:"r"}
-								}
-							}
-						}
+					{OPERATOR:"print"
+						{VAR:"c"}
 					}
 				}
 			}

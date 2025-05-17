@@ -460,11 +460,15 @@ char* SkipComment(char* current_pos)
             current_pos++;
         }
 
-        return current_pos;
+        if (*current_pos == '\n')
+        {
+            current_pos++;
+        }
     }
 
     return current_pos;
 }
+
 
 CodeError HandleMemoryAccess(char* arg, Assem *assem)
 {

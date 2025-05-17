@@ -18,6 +18,7 @@ static Node* GetTerm            (Lexeme* lexemes, size_t* pos, NameTable *name_t
 static Node* GetFactor          (Lexeme* lexemes, size_t* pos, NameTable *name_table);
 static Node* GetPrint           (Lexeme* lexemes, size_t* pos, NameTable *name_table);
 static Node* GetScan            (Lexeme* lexemes, size_t* pos);
+static Node* GetSqrt            (Lexeme* lexemes, size_t* pos, NameTable* name_table);
 
 static Node* GetFuncDef         (Lexeme* lexemes, size_t* pos, NameTable* name_table);
 static Node* GetFuncCall        (Lexeme* lexemes, size_t* pos, NameTable* name_table);
@@ -86,75 +87,6 @@ Node* ParseBlock(Lexeme* lexemes, size_t* pos, NameTable *name_table)
 
     return block_root;
 }
-
-#if 0
-Node* GetStatement(Lexeme* lexemes, size_t* pos, NameTable *name_table)
-{
-    assert(lexemes);
-    assert(pos);
-
-    Node* node = nullptr;
-
-    if (lexemes[*pos].type == LEX_OPERATOR)
-    {
-        switch (lexemes[*pos].value.optr)
-        {
-            case OP_IF:
-                node = GetIf(lexemes, pos, name_table);
-                break;
-
-            case OP_WHILE:
-                node = GetWhile(lexemes, pos, name_table);
-                break;
-
-            case OP_PRINT:
-                node = GetPrint(lexemes, pos, name_table);
-                if (lexemes[*pos].type != LEX_SEMICOLON)
-                {
-                    SyntaxERROR("Expected ';' after print", *pos, LEX_SEMICOLON, lexemes[*pos].type);
-                    return nullptr;
-                }
-                (*pos)++;
-                break;
-
-            case OP_SCAN:
-                node = GetScan(lexemes, pos);
-                if (lexemes[*pos].type != LEX_SEMICOLON)
-                {
-                    SyntaxERROR("Expected ';' after scan", *pos, LEX_SEMICOLON, lexemes[*pos].type);
-                    return nullptr;
-                }
-                (*pos)++;
-                break;
-
-            case OP_ASSIGN:
-            case OP_SEMICOLON:
-            default:
-                break;
-        }
-    }
-    else if (lexemes[*pos].type == LEX_VAR &&
-             lexemes[*pos+1].type == LEX_OPERATOR &&
-             lexemes[*pos+1].value.optr == OP_ASSIGN)
-    {
-        node = GetAssignment(lexemes, pos, name_table);
-        if (lexemes[*pos].type != LEX_SEMICOLON)
-        {
-            SyntaxERROR("Expected ';' after assignment", *pos, LEX_SEMICOLON, lexemes[*pos].type);
-            return nullptr;
-        }
-        (*pos)++;
-    }
-
-    if (node != nullptr)
-    {
-        Node* semicolon_node = NewNode(OPERATOR, OPERATOR_VALUE(OP_SEMICOLON), node, nullptr);
-        return semicolon_node;
-    }
-
-    return nullptr;
-}
-#endif
 
 Node* GetIf(Lexeme* lexemes, size_t* pos, NameTable *name_table)
 {
@@ -340,6 +272,12 @@ Node* GetAssignment(Lexeme* lexemes, size_t* pos, NameTable *name_table)
     }
     (*pos)++;
 
+    if (lexemes[*pos].value.optr == OP_SQRT)
+    {
+        Node *node = GetSqrt(lexemes, pos, name_table);
+        return _ASSIGN(var, node);
+    }
+
     Node* expr = GetExpression(lexemes, pos, name_table);
     if (!expr)
     {
@@ -452,53 +390,6 @@ Node* GetTerm(Lexeme* lexemes, size_t* pos, NameTable *name_table)
 
     return node;
 }
-#if 0
-Node* GetFactor(Lexeme* lexemes, size_t* pos, NameTable *name_table)
-{
-    assert(lexemes);
-    assert(pos);
-
-    Node* expr = nullptr;
-
-    switch (lexemes[*pos].type)
-    {
-        case LEX_NUM:
-            return _NUM(lexemes[(*pos)++].value.num);
-
-        case LEX_VAR:
-            return _VAR(lexemes[(*pos)++].value.var);
-
-        case LEX_LBRACKET:
-            (*pos)++;
-            expr = GetExpression(lexemes, pos, name_table);
-            if (!expr)
-            {
-                return nullptr;
-            }
-            if (lexemes[*pos].type != LEX_RBRACKET)
-            {
-                SyntaxERROR("Expected ')'", *pos, LEX_RBRACKET, lexemes[*pos].type);
-                return nullptr;
-            }
-            (*pos)++;
-            return expr;
-        case LEX_SEMICOLON:
-            break;
-        //FIXME
-        case LEX_END:
-        case LEX_RBRACKET:
-        case LEX_LBRACE:
-        case LEX_RBRACE:
-        case LEX_OPERATION:
-        case LEX_OPERATOR:
-        default:
-            SyntaxERROR("Expected number, variable or '('", *pos, LEX_NUM, lexemes[*pos].type);
-            return expr;
-    }
-
-    return nullptr;
-}
-#endif
 
 /******************************************************************************************************************************* */
 
@@ -583,6 +474,36 @@ Node* GetStatement(Lexeme* lexemes, size_t* pos, NameTable* name_table)
     }
 
     return node ? NewNode(OPERATOR, OPERATOR_VALUE(OP_SEMICOLON), node, nullptr) : nullptr;
+}
+
+static Node* GetSqrt(Lexeme* lexemes, size_t* pos, NameTable* name_table)
+{
+    assert(lexemes && pos && name_table);
+
+    (*pos)++;
+
+    if (lexemes[*pos].type != LEX_LBRACKET)
+    {
+        SyntaxERROR("Expected '(' after 'sqrt'", *pos, LEX_LBRACKET, lexemes[*pos].type);
+        return nullptr;
+    }
+    (*pos)++;
+
+    Node* expr = GetExpression(lexemes, pos, name_table);
+    if (!expr)
+    {
+        SyntaxERROR("Expected expression in sqrt", *pos, LEX_NUM, lexemes[*pos].type);
+        return nullptr;
+    }
+
+    if (lexemes[*pos].type != LEX_RBRACKET)
+    {
+        SyntaxERROR("Expected ')' after sqrt argument", *pos, LEX_RBRACKET, lexemes[*pos].type);
+        return nullptr;
+    }
+    (*pos)++;
+
+    return _SQRT(expr);
 }
 
 Node* GetFactor(Lexeme* lexemes, size_t* pos, NameTable* name_table)
@@ -675,9 +596,9 @@ static Node* GetFuncDef(Lexeme* lexemes, size_t* pos, NameTable* name_table)
     }
     (*pos)++;
 
-    Node* header = NewNode(OPERATOR, OPERATOR_VALUE(OP_SEMICOLON), func_name, params);
+    //Node* header = NewNode(OPERATOR, OPERATOR_VALUE(OP_SEMICOLON), func_name, params);
 
-    return NewNode(OPERATOR, OPERATOR_VALUE(OP_FUNC_DEF), header, body);
+    return NewNode(OPERATOR, OPERATOR_VALUE(OP_FUNC_DEF), func_name, body);
 }
 
 static Node* GetFuncCall(Lexeme* lexemes, size_t* pos, NameTable* name_table)

@@ -36,6 +36,7 @@ typedef enum Operator
     OP_RET,
     OP_SCAN,
     OP_PRINT,
+    OP_SQRT,
 } Operator;
 
 typedef enum Operation
@@ -93,7 +94,6 @@ typedef struct NameTable
 {
     Variable vars_table[MAX_VARS];
     Function func_table[MAX_FUNC];
-    size_t bx_offset;
 } NameTable;
 
 /*************************OPERATION INFO*******************************************************************/
@@ -140,6 +140,7 @@ static const Operator_t operators[] =
     {OP_RET,             "ace"},
     {OP_PRINT,         "serve"},
     {OP_SCAN,        "receive"},
+    {OP_SQRT,           "sqrt"},
 };
 
 const size_t size_of_operators = sizeof(operators) / sizeof(operators[0]);

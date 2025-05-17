@@ -15,6 +15,7 @@ static CodeError ParseNode                  (Node** node, NameTable *name_table,
 static CodeError HandleOperatorNode         (Node** node, NameTable *name_table, char** buffer);
 static CodeError HandleOperationNode        (Node** node, NameTable *name_table, char** buffer);
 static CodeError HandleVarNode              (Node** node, NameTable *name_table, char** buffer);
+static CodeError HandleFuncNode              (Node** node, NameTable *name_table, char** buffer);
 static CodeError HandleNumNode              (Node** node, char** buffer);
 
 static void      SkipSpace              (char** buffer);
@@ -116,6 +117,8 @@ static CodeError ParseNode(Node** node, NameTable *name_table, char** buffer)
             return HandleVarNode        (node, name_table, buffer);
         case NUM:
             return HandleNumNode        (node, buffer);
+        case FUNC:
+            return HandleFuncNode       (node, name_table, buffer);
         default:
             LOG(LOGL_ERROR, "Unknown node type: %s\n", type_str);
             return INVALID_FORMAT;
@@ -146,19 +149,19 @@ static CodeError HandleOperatorNode(Node** node, NameTable *name_table, char** b
 
     SkipSpace(buffer);
 
-    if (**buffer == '{')
-    {
-        CodeError err = ParseNode(&((*node)->left), name_table, buffer);
-        if (err != OK) return err;
-
-        SkipSpace(buffer);
-
         if (**buffer == '{')
         {
-            err = ParseNode(&((*node)->right), name_table, buffer);
+            CodeError err = ParseNode(&((*node)->left), name_table, buffer);
             if (err != OK) return err;
+
+            SkipSpace(buffer);
+
+            if (**buffer == '{')
+            {
+                err = ParseNode(&((*node)->right), name_table, buffer);
+                if (err != OK) return err;
+            }
         }
-    }
 
     SkipSpace(buffer);
 
@@ -209,6 +212,42 @@ static CodeError HandleOperationNode(Node** node, NameTable *name_table, char** 
             if (err != OK) return err;
         }
     }
+
+    SkipSpace(buffer);
+
+    if (**buffer != '}')
+    {
+        LOG(LOGL_ERROR, "Expected '}', got '%c'\n", **buffer);
+        return INVALID_FORMAT;
+    }
+    (*buffer)++;
+
+    return OK;
+}
+
+static CodeError HandleFuncNode(Node** node, NameTable *name_table, char** buffer)
+{
+    char func_str[MAX_LEN_BUF] = {};
+    if (sscanf(*buffer, "%[^\"]", func_str) != 1)
+    {
+        LOG(LOGL_ERROR, "Failed to read variable name\n");
+        return INVALID_FORMAT;
+    }
+    *buffer += strlen(func_str);
+
+    if (**buffer != '"')
+    {
+        LOG(LOGL_ERROR, "Expected '\"', got '%c'\n", **buffer);
+        return INVALID_FORMAT;
+    }
+    (*buffer)++;
+
+    size_t func_id = AddFuncTable(name_table->func_table, func_str, strlen(func_str));
+
+    NodeValue value = {};
+    value.func = func_id;
+    *node = NewNode(FUNC, value, nullptr, nullptr);
+    if (!*node) return MEM_ALLOC_FAIL;
 
     SkipSpace(buffer);
 
@@ -320,6 +359,7 @@ static Operator GetOperatorFromStr(const char* str) //FIXME
     if (strcmp(str, "call")  == 0)     return OP_FUNC_CALL;
     if (strcmp(str, "play")  == 0)     return OP_FUNC_DEF;
     if (strcmp(str, "=")     == 0)     return OP_ASSIGN;
+    if (strcmp(str, "sqrt")  == 0)     return OP_SQRT;
 
     LOG(LOGL_ERROR, "Unknown operator: %s\n", str);
     return OP_SEMICOLON;
@@ -341,4 +381,3 @@ static Operation GetOperationFromStr(const char* str)
     LOG(LOGL_ERROR, "Unknown operation: %s\n", str);
     return ADD;  // FIXME
 }
-
