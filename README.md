@@ -20,9 +20,9 @@
 > [!NOTE]
 > **Language features**. At the moment, all operations and functions have not been implemented since the session started) , so here are the important notes:
 >
-> The program must have the main function of "volleyball";
-> Functions do not accept arguments, and the return type is void;
-> It is also worth considering that this implementation of the language is written on global variables (there are no local ones.
+> - The program must have the main function of "volleyball";
+> - Functions do not accept arguments, and the return type is void;
+> - It is also worth considering that this implementation of the language is written on global variables (there are no local ones.
 
 Each module has its own responsibility and cooperates to process, compile, and execute code written in a custom programming language inspired by volleyball terminology.
 
