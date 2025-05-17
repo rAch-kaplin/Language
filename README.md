@@ -1,6 +1,6 @@
 ## A PROJECT IN DEVELOPMENT
 
-# Language
+# Language 
 
 ## Contents
 - [Overview](#overview)
@@ -13,7 +13,7 @@
 
 ---
 
-## Overview
+## Overview 🏐
 
 **Volleyball Programming Language** is a project composed of three main components: *Frontend*, *Backend*, and *CPU Emulator*.
 
@@ -33,7 +33,7 @@ Each module has its own responsibility and cooperates to process, compile, and e
   - **Assembler** — converts the assembly code into bytecode.
   - **Processor** — reads the bytecode, decodes, and executes the commands.
 
-## Syntax
+## Syntax 📘
 
 | Operation                | Keyword         | Translation            |
 |--------------------------|------------------|-------------------------|
@@ -52,11 +52,11 @@ Each module has its own responsibility and cooperates to process, compile, and e
 | `>=`                     | `not_behind`     | 	не позади             |
 | `<=`                     | `not_losing`     | не проигрываем          |
 
-## Tree Example
+## Tree Example 🌳
 
 <img src="graphviz/img/dump2_0.png" alt="Syntax Tree Image">
 
-## Programs
+## Programs 🎮
 
 To add a new program written in this language, first check the syntax rules, write your code in the `data` directory to a text file and run it.
 
@@ -159,7 +159,7 @@ play volleyball()
 ```
 </details>
 
-## How to Build
+## How to Build ⚙️
 
 ```
 cd CPU
