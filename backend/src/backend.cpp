@@ -110,6 +110,18 @@ CodeError TranslateOperator(const Node *node, NameTable *name_table, AsmFile *as
                 TranslateAssign(node, name_table, asm_file);
                 break;
             }
+            // case OP_FUNC_DEF:
+            // {
+            //     _DLOG("case OP_FUNC_DEF");
+            //     TranslateDefFunc(node, name_table, asm_file);
+            //     break;
+            // }
+            // case OP_FUNC_CALL:
+            // {
+            //     _DLOG("case OP_FUNC_CALL");
+            //     TranslateCallFunc(node, name_table, asm_file);
+            //     break;
+            // }
 
             default:
                 break; //FIXME
@@ -317,4 +329,5 @@ void TranslateAssign(const Node *node, NameTable *name_table, AsmFile *asm_file)
     TranslateExpression(node->right, name_table, asm_file);
     TranslatePopVar    (node->left, asm_file);
 }
+
 

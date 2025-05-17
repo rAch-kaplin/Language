@@ -93,6 +93,7 @@ typedef struct NameTable
 {
     Variable vars_table[MAX_VARS];
     Function func_table[MAX_FUNC];
+    size_t bx_offset;
 } NameTable;
 
 /*************************OPERATION INFO*******************************************************************/

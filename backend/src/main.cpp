@@ -46,7 +46,7 @@ int main(int argc, const char* argv[]) //TODO not const
     }
 
     //Variable vars_table[MAX_VARS] = {};
-    NameTable name_table = {};
+    NameTable name_table = {nullptr, nullptr, 10};
 
     Node* root = LoadTreeFromFile(file_tree, &name_table);
     if (root == nullptr)

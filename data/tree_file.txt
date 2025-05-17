@@ -3,70 +3,61 @@
 		{VAR:"x"}
 	}
 	{OPERATOR:";"
-		{OPERATOR:"play"
-			{OPERATOR:";"
-				{FUNC:"volleyball"}
-				}
+		{OPERATOR:"if"
+			{OPERATION:"=="
 				{VAR:"x"}
+				{NUM:"0"}
 			}
 			{OPERATOR:";"
-				{OPERATOR:"if"
-					{OPERATION:"=="
-						{VAR:"x"}
-						{NUM:"0"}
-					}
-					{OPERATOR:";"
-						{OPERATOR:"print"
-							{NUM:"1"}
-						}
-					}
+				{OPERATOR:"print"
+					{NUM:"1"}
+				}
+			}
+		}
+		{OPERATOR:";"
+			{OPERATOR:"if"
+				{OPERATION:"!="
+					{VAR:"x"}
+					{NUM:"0"}
 				}
 				{OPERATOR:";"
-					{OPERATOR:"if"
-						{OPERATION:"!="
-							{VAR:"x"}
-							{NUM:"0"}
+					{OPERATOR:"="
+						{VAR:"r"}
+						{NUM:"1"}
+					}
+					{OPERATOR:";"
+						{OPERATOR:"="
+							{VAR:"c"}
+							{NUM:"1"}
 						}
 						{OPERATOR:";"
-							{OPERATOR:"="
-								{VAR:"r"}
-								{NUM:"1"}
-							}
-							{OPERATOR:";"
-								{OPERATOR:"="
+							{OPERATOR:"while"
+								{OPERATION:"<="
 									{VAR:"c"}
-									{NUM:"1"}
+									{VAR:"x"}
 								}
 								{OPERATOR:";"
-									{OPERATOR:"while"
-										{OPERATION:"<="
+									{OPERATOR:"="
+										{VAR:"c"}
+										{OPERATION:"+"
 											{VAR:"c"}
-											{VAR:"x"}
-										}
-										{OPERATOR:";"
-											{OPERATOR:"="
-												{VAR:"c"}
-												{OPERATION:"+"
-													{VAR:"c"}
-													{NUM:"1"}
-												}
-											}
-											{OPERATOR:";"
-												{OPERATOR:"="
-													{VAR:"r"}
-													{OPERATION:"*"
-														{VAR:"r"}
-														{VAR:"c"}
-													}
-												}
-											}
+											{NUM:"1"}
 										}
 									}
 									{OPERATOR:";"
-										{OPERATOR:"print"
+										{OPERATOR:"="
 											{VAR:"r"}
+											{OPERATION:"*"
+												{VAR:"r"}
+												{VAR:"c"}
+											}
 										}
 									}
+								}
+							}
+							{OPERATOR:";"
+								{OPERATOR:"print"
+									{VAR:"r"}
 								}
 							}
 						}
