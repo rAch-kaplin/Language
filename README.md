@@ -1,48 +1,177 @@
-## A project in development
+## A PROJECT IN DEVELOPMENT
+
+# Language
+
+## Contents
+- [Overview](#overview)
+- [Frontend](#frontend)
+- [Backend & CPU](#backend--cpu)
+- [Syntax](#syntax)
+- [Tree Example](#tree-example)
+- [Programs](#programs)
+- [How to Build](#how-to-build)
+
+---
+
+## Overview
+
+**Volleyball Programming Language** is a project composed of three main components: *Frontend*, *Backend*, and *CPU Emulator*.
+
+Each module has its own responsibility and cooperates to process, compile, and execute code written in a custom programming language inspired by volleyball terminology.
+
+## Frontend
+- This component reads a text file containing a program written in the volleyball language.
+- It performs **lexical analysis** to tokenize numbers, variables, functions, and operators.
+- Then, it applies **recursive descent parsing** to check the syntax and build nodes for a tree structure that stores: element type, value, and pointers to children.
+- The frontend also includes *graphviz* integration to visualize the syntax tree.
+- The final output of the frontend is an **Abstract Syntax Tree (AST)** stored in `data/tree_file.txt`.
+
+## Backend & CPU
+- The *backend* starts by reading and reconstructing the AST.
+- It then generates **assembly code** for a custom **stack-based virtual machine**.
+- The *CPU* part contains:
+  - **Assembler** — converts the assembly code into bytecode.
+  - **Processor** — reads the bytecode, decodes, and executes the commands.
 
 ## Syntax
 
-| Operation                | Key word       | Translate                     |
-|--------------------------|----------------|-------------------------------|
-|                   `if`   | `block`        | блокировка                    |
-|              `else`      | `dig`          | подстраховка                  |
-|      `while`             | `rally`        | розыгрыш                      |
-|                `break`   | `timeout`      | перерыв                       |
-|            `continue`    | `rotate`       | ротация                       |
-|       `printf`           | `serve`        | подача                        |
-|      `scanf`             | `receive`      | приём                         |
+| Operation                | Keyword         | Translation            |
+|--------------------------|------------------|-------------------------|
+| `if`                     | `block`          | blocking                |
+| `else`                   | `dig`            | digging                 |
+| `while`                  | `rally`          | rally                   |
+| `break`                  | `timeout`        | timeout                 |
+| `continue`               | `rotate`         | rotation                |
+| `printf`                 | `serve`          | serve                   |
+| `scanf`                  | `receive`        | receive                 |
 
-| Comparison Operator      | Key word       | Translate                     |
-|--------------------------|----------------|-------------------------------|
-| `==`                     | `scores_equal` | счёт сравнялся                |
-| `!=`                     | `scores_diff`  | счёт разный                   |
-| `>`                      | `leading`      | впереди                       |
-| `<`                      | `losing`       | отстаём                       |
-| `>=`                     | `not_behind`   | не позади                     |
-| `<=`                     | `not_losing`   | не проигрываем                |
+| Comparison Operator      | Keyword         | Translation            |
+|--------------------------|------------------|-------------------------|
+| `==`                     | `scores_equal`   | scores are equal        |
+| `!=`                     | `scores_diff`    | scores are different    |
+| `>`                      | `leading`        | leading                 |
+| `<`                      | `losing`         | falling behind          |
+| `>=`                     | `not_behind`     | not behind              |
+| `<=`                     | `not_losing`     | not losing              |
 
+## Tree Example
 
-First version of the factorial programme:
-```
-receive(x);
+<img src="graphviz/img/dump2_0.png" alt="Syntax Tree Image">
 
-block (x scores_equal 0)
+## Programs
+
+To add a new program written in this language, first check the syntax rules, write your code in the `data` directory to a text file and run it.
+
+### Example Program: **EquationSolver**
+
+<details><summary>SolveSquare</summary>
+
+```c
+play volleyball()
 {
-    serve(1);
-}
+    receive(a);
+    receive(b);
+    receive(c);
 
-block (x scores_diff 0)
-{
-    r = 1;
-    c = 1;
-
-    rally (c not_losing x)
+    block(a scores_equal 0)
     {
-        c = c + 1;
-        r = r * c;
+        block(b scores_equal 0)
+        {
+            serve(999);
+            ace 0;
+        }
+
+        SolveLinSq();
+        ace 0;
     }
 
-    serve(r);
+    discr = b * b - 4 * a * c;
+    c = sqrt(discr);
+
+    block(discr scores_equal 0)
+    {
+        y = (-1 * b) / (2 * a);
+        serve(y);
+        ace 0;
+    }
+
+    block(discr leading 0)
+    {
+        SolveQuadSq();
+        ace 0;
+    }
+
+    block(discr losing 0)
+    {
+        serve(999);
+    }
+
+    ace 0;
 }
+
+play SolveLinSq()
+{
+    q = (-1 * c) / b;
+    serve(q);
+    ace 0;
+}
+
+play SolveQuadSq()
+{
+    x  = (-1 * b - c) / (2 * a);
+    xx = (-1 * b + c) / (2 * a);
+
+    serve(x);
+    serve(xx);
+
+    ace 0;
+}
+```
+</details>
+
+Example Program: factorial
+<details><summary>Factorial</summary>
+
+```c
+play volleyball()
+{
+    receive(x);
+
+    block (x scores_equal 0)
+    {
+        serve(1);
+    }
+
+    block (x scores_diff 0)
+    {
+        r = 1;
+        c = 1;
+
+        rally (c not_losing x)
+        {
+            c = c + 1;
+            r = r * c;
+        }
+
+        serve(r);
+    }
+
+    ace 0;
+}
+```
+</details>
+
+## How to Build
+
+```
+cd CPU
+make all
+cd ../build
+make
+
+../run.sh frontend "SolveSquare.txt"
+../run.sh backend
+../run.sh asm
+../run.sh proc
 
 ```

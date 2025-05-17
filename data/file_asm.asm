@@ -6,141 +6,150 @@ hlt
 ;=== FUNCTION DEF volleyball ===
 volleyball:
 
-;===============  ASSIGN  ============== 
-push 9
+;===============  SCAN  ============== 
+in
 pop [0]
 
-;===============  ASSIGN  ============== 
-
-;===============  SQRT  ============== 
-push [0]
-sqrt
+;===============  SCAN  ============== 
+in
 pop [1]
-
-;===============  PRINT  ============== 
-push [1]
-out
 
 ;===============  SCAN  ============== 
 in
 pop [2]
 
-;===============  SCAN  ============== 
-in
-pop [3]
-
-;===============  SCAN  ============== 
-in
-pop [4]
+;===============  IF  ============== 
+push 0
+push [0]
+jne if_skip_block_0:
 
 ;===============  IF  ============== 
 push 0
-push [2]
-jne if_skip_block_0:
+push [1]
+jne if_skip_block_1:
 
-;===============  ASSIGN  ============== 
-push -1
-push [4]
+;===============  PRINT  ============== 
+push 999
+out
+
+;=== RETURN ===
+ret
+if_skip_block_1:
+
+;=== FUNCTION CALL SolveLinSq ===
+call SolveLinSq:
+
+;=== RETURN ===
+ret
+if_skip_block_0:
+push [1]
+push [1]
 mul
+push 4
+push [0]
+mul
+push [2]
+mul
+sub
+pop [3]
+
+;===============  SQRT  ============== 
 push [3]
+sqrt
+pop [2]
+
+;===============  IF  ============== 
+push 0
+push [3]
+jne if_skip_block_2:
+push -1
+push [1]
+mul
+push 2
+push [0]
+mul
+div
+pop [4]
+
+;===============  PRINT  ============== 
+push [4]
+out
+
+;=== RETURN ===
+ret
+if_skip_block_2:
+
+;===============  IF  ============== 
+push 0
+push [3]
+ja if_skip_block_3:
+
+;=== FUNCTION CALL SolveQuadSq ===
+call SolveQuadSq:
+
+;=== RETURN ===
+ret
+if_skip_block_3:
+
+;===============  IF  ============== 
+push 0
+push [3]
+jb if_skip_block_4:
+
+;===============  PRINT  ============== 
+push 999
+out
+if_skip_block_4:
+
+;=== RETURN ===
+ret
+
+;=== FUNCTION DEF SolveLinSq ===
+SolveLinSq:
+push -1
+push [2]
+mul
+push [1]
 div
 pop [5]
 
 ;===============  PRINT  ============== 
 push [5]
 out
-if_skip_block_0:
 
-;===============  ASSIGN  ============== 
-push [3]
-push [3]
+;=== RETURN ===
+ret
+
+;=== FUNCTION DEF SolveQuadSq ===
+SolveQuadSq:
+push -1
+push [1]
 mul
-push 4
 push [2]
-mul
-push [4]
-mul
 sub
+push 2
+push [0]
+mul
+div
 pop [6]
-
-;===============  ASSIGN  ============== 
-
-;===============  SQRT  ============== 
-push [6]
-sqrt
-pop [4]
-
-;===============  PRINT  ============== 
-push [4]
-out
-
-;===============  IF  ============== 
-push 0
-push [6]
-jae if_skip_block_1:
-
-;===============  PRINT  ============== 
-push 999
-out
-if_skip_block_1:
-
-;===============  IF  ============== 
-push 0
-push [6]
-jne if_skip_block_2:
-
-;===============  ASSIGN  ============== 
 push -1
-push [3]
+push [1]
 mul
-push 2
 push [2]
-mul
-div
-pop [7]
-
-;===============  PRINT  ============== 
-push [7]
-out
-if_skip_block_2:
-
-;===============  IF  ============== 
-push 0
-push [6]
-jbe if_skip_block_3:
-
-;===============  ASSIGN  ============== 
-push -1
-push [3]
-mul
-push [4]
-sub
-push 2
-push [2]
-mul
-div
-pop [7]
-
-;===============  ASSIGN  ============== 
-push -1
-push [3]
-mul
-push [4]
 add
 push 2
-push [2]
+push [0]
 mul
 div
-pop [8]
+pop [7]
+
+;===============  PRINT  ============== 
+push [6]
+out
 
 ;===============  PRINT  ============== 
 push [7]
 out
-
-;===============  PRINT  ============== 
-push [8]
-out
-if_skip_block_3:
 
 ;=== RETURN ===
 ret

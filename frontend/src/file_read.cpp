@@ -9,8 +9,11 @@
 #include "lexical_analysis.h"
 #include "syntax_analysis.h"
 #include "tree_func.h"
+#include "colors.h"
 
 const size_t BUFFER_SIZE = 10;
+
+static bool CheckVolleyFunc(Function *func_table);
 
 Node* ReadProgram(const char *file_program, NameTable *name_table)
 {
@@ -21,8 +24,14 @@ Node* ReadProgram(const char *file_program, NameTable *name_table)
         LOG(LOGL_ERROR, "Lexeme_array was not allocated");
         return nullptr;
     }
-
     PrintLexemes(lexeme_array, lexeme_count, name_table);
+
+    if (!CheckVolleyFunc(name_table->func_table))
+    {
+        fprintf(stderr, RED "function 'volleyball' not found, pls fix it!" RESET);
+        DeinitLexemes(lexeme_array);
+        return nullptr;
+    }
 
     size_t cur = 0;
     LOG(LOGL_DEBUG, "Start General() func");
@@ -31,6 +40,20 @@ Node* ReadProgram(const char *file_program, NameTable *name_table)
     DeinitLexemes(lexeme_array);
 
     return node_G;
+}
+
+static bool CheckVolleyFunc(Function *func_table)
+{
+    assert(func_table);
+
+    for (size_t i = 0; i < MAX_FUNC; i++)
+    {
+        if (func_table[i].name && strcmp(func_table[i].name, "volleyball") == 0)
+        {
+            return true;
+        }
+    }
+    return false;
 }
 
 

@@ -159,10 +159,10 @@ void TranslateIf(const Node *node, NameTable *name_table, AsmFile *asm_file)
     {
         case EQ:  _WRITE_ASM(asm_file, "jne if_skip_block_%zu:\n",  if_id); break;
         case NEQ: _WRITE_ASM(asm_file, "je if_skip_block_%zu:\n",   if_id); break;
-        case LT:  _WRITE_ASM(asm_file, "jae if_skip_block_%zu:\n",  if_id); break;
-        case LE:  _WRITE_ASM(asm_file, "ja if_skip_block_%zu:\n",   if_id); break;
-        case GT:  _WRITE_ASM(asm_file, "jbe if_skip_block_%zu:\n",  if_id); break;
-        case GE:  _WRITE_ASM(asm_file, "jb if_skip_block_%zu:\n",   if_id); break;
+        case LT:  _WRITE_ASM(asm_file, "jb if_skip_block_%zu:\n",   if_id); break;
+        case LE:  _WRITE_ASM(asm_file, "jbe if_skip_block_%zu:\n",  if_id); break;
+        case GT:  _WRITE_ASM(asm_file, "ja if_skip_block_%zu:\n",   if_id); break;
+        case GE:  _WRITE_ASM(asm_file, "jae if_skip_block_%zu:\n",  if_id); break;
 
         case ADD:
         case SUB:
@@ -355,7 +355,7 @@ void TranslateAssign(const Node *node, NameTable *name_table, AsmFile *asm_file)
     assert(asm_file);
 
     _DLOG("TranslateAssign");
-    _WRITE_ASM(asm_file, "\n;===============  ASSIGN  ============== \n");
+    //_WRITE_ASM(asm_file, "\n;===============  ASSIGN  ============== \n");
     if (node->right->value.optr == OP_SQRT)
     {
         TranslateSqrt(node->right, name_table, asm_file);
