@@ -172,6 +172,7 @@ play volleyball()
 cd CPU
 make all
 cd ../build
+cmake ..
 make
 
 ../run.sh frontend "SolveSquare.txt"
